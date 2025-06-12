@@ -5,6 +5,7 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 - updated readme
 
 #### proj: kafka-commands
+- modified consumer with timestamp option --property print.timestamp=true
 - 04-print-offset.sh: consumer cmd with print.offset=true option
 - set --timeout option on producer to send message given timeout (ms)
 - file for commands for kafka-console-consumer.sh to consume messages from a specific topic
