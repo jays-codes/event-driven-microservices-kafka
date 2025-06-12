@@ -1,6 +1,9 @@
 # create a producer
 kafka-console-producer.sh --broker-list localhost:9092 --topic test-topic
 
+# create a producer with timeout
+kafka-console-producer.sh --broker-list localhost:9092 --topic test-topic --timeout 10
+
 # produce messages
 kafka-console-producer.sh --broker-list localhost:9092 --topic test-topic --producer-property acks=all
 
