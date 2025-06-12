@@ -5,6 +5,8 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 - updated readme
 
 #### proj: kafka-commands
+- kafka-consumer-groups.sh - for managing consumer groups: --list
+- Consumer Group: added consumer cmd with --group option
 - modified consumer with timestamp option --property print.timestamp=true
 - 04-print-offset.sh: consumer cmd with print.offset=true option
 - set --timeout option on producer to send message given timeout (ms)
