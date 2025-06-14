@@ -5,6 +5,7 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 - updated readme
 
 #### proj: kafka-commands
+- specify # of partition to create for topic : 01-topic.sh --partitions
 - kafka-consumer-groups.sh - for managing consumer groups: --list
 - Consumer Group: added consumer cmd with --group option
 - modified consumer with timestamp option --property print.timestamp=true
