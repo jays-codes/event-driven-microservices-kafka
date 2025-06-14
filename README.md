@@ -5,6 +5,8 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 - updated readme
 
 #### proj: kafka-commands
+- demoed passing key:msg-val in a producer via --property key.separator=: and parse.key=true;
+and have consumer print key using --property print.key=true; used new topic created earlier with 2 partitions
 - specify # of partition to create for topic : 01-topic.sh --partitions
 - kafka-consumer-groups.sh - for managing consumer groups: --list
 - Consumer Group: added consumer cmd with --group option

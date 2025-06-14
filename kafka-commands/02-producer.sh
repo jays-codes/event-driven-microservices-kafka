@@ -10,5 +10,9 @@ kafka-console-producer.sh --broker-list localhost:9092 --topic test-topic --prod
 # produce messages with key
 kafka-console-producer.sh --broker-list localhost:9092 --topic test-topic --property parse.key=true --property key.separator=:
 
-# produce messages with headers
-kafka-console-producer.sh --broker-list localhost:9092 --topic test-topic --property parse.key=true --property key.separator=: --property header.separator=:
+kafka-console-producer.sh \
+--bootstrap-server localhost:9092 \
+--topic test-topic-3 \
+--property key.separator=: \
+--property parse.key=true \
+
