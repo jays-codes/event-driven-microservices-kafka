@@ -5,6 +5,8 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 - updated readme
 
 #### proj: kafka-commands
+- added cmd (consumer-groups.sh) --group --describe; demoed lag count before and after stopping and after restarting consumer (producing msgs between)
+- test command to modify partition count in a topic
 - demoed passing key:msg-val in a producer via --property key.separator=: and parse.key=true;
 and have consumer print key using --property print.key=true; used new topic created earlier with 
 2 partitions; 2 consumer in a consumer-group consuming

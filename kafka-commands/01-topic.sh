@@ -13,4 +13,6 @@ kafka-topics.sh --bootstrap-server localhost:9092 --topic test-topic --delete
 #topic with 2 partitions
 kafka-topics.sh --bootstrap-server localhost:9092 --topic test-topic-2 --create --partitions 2 --replication-factor 1
 
+# add partition to an exeisting topic
+kafka-topics.sh --bootstrap-server localhost:9092 --topic test-topic-3 --alter --partitions 3
 
