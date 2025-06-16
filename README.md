@@ -5,6 +5,8 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 - updated readme
 
 #### proj: kafka-commands
+- added file for reset offset cmds (kafka-consumer-groups.sh) --reset-offsets, --shift-by, --by-duration, 
+--to-datetime, --to-earliest, --to-latest, --to-current, --execute, --dry-run
 - added cmd (consumer-groups.sh) --group --describe; demoed lag count before and after stopping and after restarting consumer (producing msgs between)
 - test command to modify partition count in a topic
 - demoed passing key:msg-val in a producer via --property key.separator=: and parse.key=true;
