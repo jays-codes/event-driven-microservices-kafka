@@ -5,6 +5,7 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 - updated readme
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
+- created KafkaConsumer demo class; ConsumerConfig,  properties: BOOTSTRAP_SERVERS_CONFIG, KEY_DESERIALIZER_CLASS_CONFIG, VALUE_DESERIALIZER_CLASS_CONFIG, GROUP_ID_CONFIG
 - initial proj commit incl dep: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
 
 #### proj: kafka-commands

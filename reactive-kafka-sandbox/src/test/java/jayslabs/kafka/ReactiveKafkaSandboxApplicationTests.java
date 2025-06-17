@@ -1,4 +1,4 @@
-package jayslabs.kafka.reactive_kafka_sandbox;
+package jayslabs.kafka;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
