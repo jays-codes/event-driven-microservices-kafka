@@ -4,6 +4,9 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 #### repo: event-driven-microservices-kafka
 - updated readme
 
+#### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
+- initial proj commit incl dep: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
+
 #### proj: kafka-commands
 - added file for reset offset cmds (kafka-consumer-groups.sh) --reset-offsets, --shift-by, --by-duration, 
 --to-datetime, --to-earliest, --to-latest, --to-current, --execute, --dry-run
