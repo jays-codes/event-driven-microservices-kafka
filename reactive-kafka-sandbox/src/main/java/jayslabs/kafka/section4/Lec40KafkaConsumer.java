@@ -30,7 +30,8 @@ public class Lec40KafkaConsumer {
             ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
             ConsumerConfig.GROUP_ID_CONFIG, "sandbox-group-3",
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
-            ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, "instance-1"
+            ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, "instance-1",
+            ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true
         );
 
         var receiverOptions = ReceiverOptions
