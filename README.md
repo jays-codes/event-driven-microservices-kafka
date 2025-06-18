@@ -5,6 +5,7 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 - updated readme
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
+- MultipleTopicsConsumer: class to demo consuming from multiple topics; used regex for topic names
 - KafkaConsumer: set ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to true for automatic message acknowledgement
 - KafkaConsumer: called record.receiverOffset().acknowledge() on doOnNext() on .receive() to acknowledge consumer receiving message
 - KafkaConsumer: set ConsumerConfig.GROUP_INSTANCE_ID_CONFIG to speed up partition reassignment after a restart
