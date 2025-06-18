@@ -29,7 +29,8 @@ public class Lec40KafkaConsumer {
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
             ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
             ConsumerConfig.GROUP_ID_CONFIG, "sandbox-group-2",
-            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"
+            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
+            ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, "instance-1"
         );
 
         var receiverOptions = ReceiverOptions
