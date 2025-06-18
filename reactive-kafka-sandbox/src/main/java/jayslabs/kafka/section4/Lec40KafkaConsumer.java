@@ -28,7 +28,8 @@ public class Lec40KafkaConsumer {
             ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
             ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
-            ConsumerConfig.GROUP_ID_CONFIG, "sandbox-group-1"
+            ConsumerConfig.GROUP_ID_CONFIG, "sandbox-group-2",
+            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"
         );
 
         var receiverOptions = ReceiverOptions
@@ -39,8 +40,8 @@ public class Lec40KafkaConsumer {
         KafkaReceiver.create(receiverOptions)
             .receive()
             .doOnNext(record -> {
-                log.info("Received message - key: {}, value: {}", 
-                record.key(), record.value());
+                log.info("Received message - partition: {}, offset: {}, key: {}, value: {}", 
+                record.partition(), record.offset(), record.key(), record.value());
             })
             .subscribe();
 
