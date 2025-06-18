@@ -5,6 +5,7 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 - updated readme
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
+- KafkaConsumer: called record.receiverOffset().acknowledge() on doOnNext() on .receive() to acknowledge consumer receiving message
 - KafkaConsumer: set ConsumerConfig.GROUP_INSTANCE_ID_CONFIG to speed up partition reassignment after a restart
 - KafkaConsumer: set ConsumerConfig.AUTO_OFFSET_REST_CONFIG to earliest to get all events in topic for consumer group
 - KafkaConsumer: defined ConsumerConfig(config), defined ReceiverOptions (options) using config: .create(), .subscription(<topics>), create instance of KafkaReceiver class passing in options: create(), receive():Flux<ReceiverRecord>
