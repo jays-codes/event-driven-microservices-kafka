@@ -34,8 +34,8 @@ public class Lec50KafkaProducer {
         .map(i -> new ProducerRecord<>("order-events", i.toString(), "order-event-" + i))
         .map(precord -> SenderRecord.create(precord, precord.key()));
 
-        KafkaSender.create(senderOptions)
-        .send(flux)
+        var sender = KafkaSender.create(senderOptions);
+        sender.send(flux)
         // .doOnNext(senderResult -> {
         //     log.info("Sent message - topic: {}, partition: {}, offset: {}", 
         //     senderResult.recordMetadata().topic(), senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset());
@@ -43,6 +43,7 @@ public class Lec50KafkaProducer {
 
         //shows which message got processed
         .doOnNext(r -> log.info("correlation id: {}",r.correlationMetadata()))
+        .doOnComplete(sender::close)
         .subscribe();
 
     }
