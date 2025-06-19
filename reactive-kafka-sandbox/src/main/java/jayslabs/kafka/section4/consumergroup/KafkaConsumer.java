@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.CooperativeStickyAssignor;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,8 @@ public class KafkaConsumer {
             ConsumerConfig.GROUP_ID_CONFIG, "inventory-service-group",
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
             ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, instanceId,
-            ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true
+            ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true,
+            ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, CooperativeStickyAssignor.class.getName()
         );
 
         var receiverOptions = ReceiverOptions
