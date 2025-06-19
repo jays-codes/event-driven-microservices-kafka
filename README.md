@@ -5,6 +5,8 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 - updated readme
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
+- package:section4.seekoffset: KafkaProducer, KafkaConsumer: uses .addAssignListener(), Collection<ReceiverPartition>, ReceiverPartition.topicPartition(), .partition(), .position(), .seek();
+seekToLastMessagesForPartition()  - to go to last N message of a given x partition; seekToBeginning(), seekToEnd(), seekToTimestamp() 
 - [BP] set ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG : CooperativeStickyAssignor - for partition reassignment to consumer instances in cg
 - section4.consumergroup.KafkaConsumer/KafkaProducer/KafkaConsumerGroup; setup topic (order-events) with 3 partitions
 - KafkaProducer: add message headers to ProducerRecord. Used RecordHeaders
