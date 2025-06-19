@@ -16,7 +16,7 @@ public class KafkaConsumerGroup {
 
     private static class Consumer3{
         public static void main(String[] args) {
-            KafkaConsumer.start("1");
+            KafkaConsumer.start("3");
         }
     }
 }
