@@ -1,8 +1,8 @@
 # event-driven-microservices-kafka
 Jay's project/practice repo for Event-driven Microservice using Kafka
 
-#### repo: event-driven-microservices-kafka
-- updated readme
+#### proj: kafka-cluster-setup
+- docker-compose.yaml, /props w/ (3) *.properties file to setup Kafka cluster w/ 3 nodes; generated another compose version to use bitnami image
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
 - package:section4.seekoffset: KafkaProducer, KafkaConsumer: uses .addAssignListener(), Collection<ReceiverPartition>, ReceiverPartition.topicPartition(), .partition(), .position(), .seek();
@@ -46,3 +46,6 @@ and have consumer print key using --property print.key=true; used new topic crea
 #### proj: kafka-setup
 - updated docker-compose (kafka-bitnami)
 - created docker-compose files to use instructor custom kafka image, and bitnami image; updated gitignore to avoid including volume files
+
+#### repo: event-driven-microservices-kafka
+- updated readme

@@ -1,0 +1,108 @@
+version: "3.8"
+
+services:
+  kafka1:
+    image: bitnami/kafka:latest
+    container_name: kafka1-bitnami
+    ports:
+      - "9091:9092"  # Internal port for inter-broker communication
+      - "8081:8081"  # External port for clients
+    environment:
+      # KRaft settings
+      KAFKA_ENABLE_KRAFT: yes
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_NODE_ID: 1
+      
+      # Listeners configuration
+      KAFKA_CFG_LISTENERS: INTERNAL://:9092,CONTROLLER://:9093,EXTERNAL://:8081
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CFG_ADVERTISED_LISTENERS: INTERNAL://kafka1:9092,EXTERNAL://localhost:8081
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: INTERNAL
+      
+      # Controller quorum
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+      KAFKA_KRAFT_CLUSTER_ID: OTMwNzFhYTY1ODNiNGE5OT
+      
+      # Topic settings
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: false
+      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      
+      # Bitnami specific
+      ALLOW_PLAINTEXT_LISTENER: yes
+    volumes:
+      - ./data/b1:/bitnami/kafka
+    networks:
+      - kafka-cluster
+
+  kafka2:
+    image: bitnami/kafka:latest
+    container_name: kafka2-bitnami
+    ports:
+      - "9092:9092"  # Internal port for inter-broker communication
+      - "8082:8082"  # External port for clients
+    environment:
+      # KRaft settings
+      KAFKA_ENABLE_KRAFT: yes
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_NODE_ID: 2
+      
+      # Listeners configuration
+      KAFKA_CFG_LISTENERS: INTERNAL://:9092,CONTROLLER://:9093,EXTERNAL://:8082
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CFG_ADVERTISED_LISTENERS: INTERNAL://kafka2:9092,EXTERNAL://localhost:8082
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: INTERNAL
+      
+      # Controller quorum
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+      KAFKA_KRAFT_CLUSTER_ID: OTMwNzFhYTY1ODNiNGE5OT
+      
+      # Topic settings
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: false
+      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      
+      # Bitnami specific
+      ALLOW_PLAINTEXT_LISTENER: yes
+    volumes:
+      - ./data/b2:/bitnami/kafka
+    networks:
+      - kafka-cluster
+
+  kafka3:
+    image: bitnami/kafka:latest
+    container_name: kafka3-bitnami
+    ports:
+      - "9093:9092"  # Internal port for inter-broker communication  
+      - "8083:8083"  # External port for clients
+    environment:
+      # KRaft settings
+      KAFKA_ENABLE_KRAFT: yes
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_NODE_ID: 3
+      
+      # Listeners configuration
+      KAFKA_CFG_LISTENERS: INTERNAL://:9092,CONTROLLER://:9093,EXTERNAL://:8083
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CFG_ADVERTISED_LISTENERS: INTERNAL://kafka3:9092,EXTERNAL://localhost:8083
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: INTERNAL
+      
+      # Controller quorum
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+      KAFKA_KRAFT_CLUSTER_ID: OTMwNzFhYTY1ODNiNGE5OT
+      
+      # Topic settings
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: false
+      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      
+      # Bitnami specific
+      ALLOW_PLAINTEXT_LISTENER: yes
+    volumes:
+      - ./data/b3:/bitnami/kafka
+    networks:
+      - kafka-cluster
+
+networks:
+  kafka-cluster:
+    driver: bridge 
