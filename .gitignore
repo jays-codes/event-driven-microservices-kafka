@@ -19,3 +19,6 @@ buildNumber.properties
 # Kafka data directories
 kafka-setup/compose/data/
 kafka-cluster-setup/compose/data/
+
+# Exclude all data directories
+**/data/
