@@ -2,6 +2,7 @@
 Jay's project/practice repo for Event-driven Microservice using Kafka
 
 #### proj: kafka-cluster-setup
+- package:section5 - demo fault tolerance when kafka nodes are down in a cluster 
 - docker-compose.yaml, /props w/ (3) *.properties file to setup Kafka cluster w/ 3 nodes; generated another compose version to use bitnami image
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
