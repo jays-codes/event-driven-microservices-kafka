@@ -3,6 +3,7 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
+- section7.parallel.KafkaConsumer: [BP] used Bounded Elastic Scheduler to run processing (blocking) to a separate thread pool
 - section7.parallel.KafkaConsumer: UC:Parallel Processing using flatMap()
 - section7.batch.KafkaConsumer: UC:Batch Processing; called receiveAutoAck(), (Flux) concatMap(KafkaConsumer::batchProcess), HOF batchProcess(Flux<ConsumerRecord>):Mono<Void>
 - package:section7.batch - initial create of classes for Batch and Parallel Processing

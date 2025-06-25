@@ -30,7 +30,7 @@ public class KafkaProducer {
 
         // var flux = Flux.interval(Duration.ofMillis(50))
         // .take(10_000)
-        var flux = Flux.range(0, 200)
+        var flux = Flux.range(0, 2000)
         .map(i -> createSenderRecord(i.intValue()));
 
         var sender = KafkaSender.create(senderOptions);

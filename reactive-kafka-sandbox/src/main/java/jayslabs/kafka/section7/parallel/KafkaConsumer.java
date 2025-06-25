@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverOptions;
 
@@ -53,6 +54,7 @@ public class KafkaConsumer {
 
     private static Mono<Void> batchProcess(Flux<ConsumerRecord<Object,Object>> fluxRecords) {
         return fluxRecords
+        .publishOn(Schedulers.boundedElastic())
         .doFirst(() -> log.info("---- Starting batch processing ----"))
         .doOnNext(record -> log.info("Received message - topic: {}, partition: {}, offset: {}, key: {}, value: {}", 
                 record.topic(), record.partition(), record.offset(), record.key(), record.value()))
