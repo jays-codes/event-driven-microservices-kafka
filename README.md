@@ -1,11 +1,10 @@
 # event-driven-microservices-kafka
 Jay's project/practice repo for Event-driven Microservice using Kafka
 
-#### proj: kafka-cluster-setup
-- package:section5 - demo fault tolerance when kafka nodes are down in a cluster 
-- docker-compose.yaml, /props w/ (3) *.properties file to setup Kafka cluster w/ 3 nodes; generated another compose version to use bitnami image
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
+- section7.KafkaConsumer: UC:Batch Processing; called receiveAutoAck(), (Flux) concatMap(KafkaConsumer::batchProcess), HOF batchProcess(Flux<ConsumerRecord>):Mono<Void>
+- package:section7 - initial create of classes for Batch and Parallel Processing
 - package:section4.seekoffset: KafkaProducer, KafkaConsumer: uses .addAssignListener(), Collection<ReceiverPartition>, ReceiverPartition.topicPartition(), .partition(), .position(), .seek();
 seekToLastMessagesForPartition()  - to go to last N message of a given x partition; seekToBeginning(), seekToEnd(), seekToTimestamp() 
 - [BP] set ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG : CooperativeStickyAssignor - for partition reassignment to consumer instances in cg
@@ -24,6 +23,10 @@ called .send(flex), and .doOnNext(SenderResult), logging in correlation id from 
 - KafkaConsumer: defined ConsumerConfig(config), defined ReceiverOptions (options) using config: .create(), .subscription(<topics>), create instance of KafkaReceiver class passing in options: create(), receive():Flux<ReceiverRecord>
 - created KafkaConsumer demo class; ConsumerConfig,  properties: BOOTSTRAP_SERVERS_CONFIG, KEY_DESERIALIZER_CLASS_CONFIG, VALUE_DESERIALIZER_CLASS_CONFIG, GROUP_ID_CONFIG
 - initial proj commit incl dep: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
+
+#### proj: kafka-cluster-setup
+- package:section5 - demo fault tolerance when kafka nodes are down in a cluster 
+- docker-compose.yaml, /props w/ (3) *.properties file to setup Kafka cluster w/ 3 nodes; generated another compose version to use bitnami image
 
 #### proj: kafka-commands
 - added file for reset offset cmds (kafka-consumer-groups.sh) --reset-offsets, --shift-by, --by-duration, 
