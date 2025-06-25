@@ -1,4 +1,4 @@
-package jayslabs.kafka.section7;
+package jayslabs.kafka.section7.batch;
 
 import java.time.Duration;
 import java.util.List;

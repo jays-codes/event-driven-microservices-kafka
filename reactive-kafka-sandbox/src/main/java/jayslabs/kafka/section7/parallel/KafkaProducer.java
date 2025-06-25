@@ -1,4 +1,4 @@
-package jayslabs.kafka.section7;
+package jayslabs.kafka.section7.parallel;
 
 import java.util.Map;
 
@@ -30,7 +30,7 @@ public class KafkaProducer {
 
         // var flux = Flux.interval(Duration.ofMillis(50))
         // .take(10_000)
-        var flux = Flux.range(0, 4000)
+        var flux = Flux.range(0, 200)
         .map(i -> createSenderRecord(i.intValue()));
 
         var sender = KafkaSender.create(senderOptions);

@@ -3,8 +3,9 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
-- section7.KafkaConsumer: UC:Batch Processing; called receiveAutoAck(), (Flux) concatMap(KafkaConsumer::batchProcess), HOF batchProcess(Flux<ConsumerRecord>):Mono<Void>
-- package:section7 - initial create of classes for Batch and Parallel Processing
+- section7.parallel.KafkaConsumer: UC:Parallel Processing using flatMap()
+- section7.batch.KafkaConsumer: UC:Batch Processing; called receiveAutoAck(), (Flux) concatMap(KafkaConsumer::batchProcess), HOF batchProcess(Flux<ConsumerRecord>):Mono<Void>
+- package:section7.batch - initial create of classes for Batch and Parallel Processing
 - package:section4.seekoffset: KafkaProducer, KafkaConsumer: uses .addAssignListener(), Collection<ReceiverPartition>, ReceiverPartition.topicPartition(), .partition(), .position(), .seek();
 seekToLastMessagesForPartition()  - to go to last N message of a given x partition; seekToBeginning(), seekToEnd(), seekToTimestamp() 
 - [BP] set ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG : CooperativeStickyAssignor - for partition reassignment to consumer instances in cg
