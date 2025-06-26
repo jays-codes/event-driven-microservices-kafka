@@ -3,6 +3,7 @@ package jayslabs.kafka.section8.errhandling;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.CooperativeStickyAssignor;
@@ -10,18 +11,20 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import reactor.core.publisher.Mono;
 import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverOptions;
+import reactor.kafka.receiver.ReceiverRecord;
 import reactor.util.retry.Retry;
 
 /*
  
-Error Handling in Kafka Consumer - during processing
+Error Handling in Kafka Consumer - Separate Receiver and Processor pipeline
 
  */
 
-public class KafkaConsumer {
-    private static final Logger log = LoggerFactory.getLogger(KafkaConsumer.class);
+public class KafkaConsumerV2 {
+    private static final Logger log = LoggerFactory.getLogger(KafkaConsumerV2.class);
     public static void main(String[] args) {
 
         var consumerConfig = Map.<String, Object>of(
@@ -35,25 +38,33 @@ public class KafkaConsumer {
             ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, CooperativeStickyAssignor.class.getName()
         );
 
-        var receiverOptions = ReceiverOptions.<String, String>create(consumerConfig)
+        var receiverOptions = ReceiverOptions.create(consumerConfig)
         .subscription(List.of("order-events"));
 
 
         KafkaReceiver.create(receiverOptions)
             .receive()
-            .doOnNext(record -> {
-                log.info("Received message - topic: {}, partition: {}, offset: {}, key: {}, value: {}", 
-                record.topic(), record.partition(), record.offset(), record.key(), record.value().toString().toCharArray()[15]);
-            })
-            .doOnError(ex -> {
-                log.error(ex.getMessage());
-            })
+            .log()
+            .concatMap(KafkaConsumerV2::processMessage)
+            .subscribe();
+    }
 
-            .doOnNext(record -> record.receiverOffset().acknowledge())
-            .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(1)))
-            .blockLast();
-            //.subscribe();
-
-
+    private static Mono<Void> processMessage(ReceiverRecord<Object,Object> record) {
+        return Mono.just(record)
+        .doOnNext(r -> {
+            var index = ThreadLocalRandom.current().nextInt(1, 100);
+            log.info("Processing message - index: {}, topic: {}, partition: {}, offset: {}, key: {}, value: {}", 
+            index, r.topic(), r.partition(), r.offset(), r.key(), r.value().toString().toCharArray()[index]);
+        })
+        .retryWhen(
+            Retry.fixedDelay(3, Duration.ofSeconds(1))
+            .onRetryExhaustedThrow((retrySpec, signal) -> 
+            signal.failure()
+            )
+        )
+        .doOnError(ex -> log.error(ex.getMessage()))
+        .doFinally(signalType -> record.receiverOffset().acknowledge())
+        .onErrorComplete()
+        .then();
     }
 }

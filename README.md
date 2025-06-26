@@ -3,6 +3,9 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
+- section8.errhandling.KafkaConsumerV2: [BP] Separate Receiver and Processor Pipelines. used retryWhen(), Retry.fixedDelay(attempts, duration), 
+onRetryExhausted(signal -> RetrySignal.failure()), .doOnError(log), doFinally(ack offset), onErrorComplete();
+Created class diagram in diagrams/section8/errorhandling
 - section8.errhandling.KafkaConsumer: to demo error handling while processing msg in Consumer
 - section7.parallelordered.KafkaConsumer: [BP] UC:enable ordering of messages with Parallel processing; used .groupBy(), GroupedFlux, flatMap() 
 - section7.parallel.KafkaConsumer: [BP] used Bounded Elastic Scheduler to run processing (blocking) to a separate thread pool; .publishOn(Schedulers.boundedElastic())

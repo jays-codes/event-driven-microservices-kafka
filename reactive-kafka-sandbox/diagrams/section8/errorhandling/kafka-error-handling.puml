@@ -1,0 +1,87 @@
+@startuml Kafka Error Handling Architecture
+
+package "Kafka Consumer V2 Error Handling" {
+    
+    class KafkaConsumerV2 {
+        - static final Logger log
+        + static void main(String[] args)
+        - static Mono<Void> processMessage(ReceiverRecord<Object,Object>)
+    }
+    
+    class ReceiverOptions {
+        + subscription(List<String>)
+        + create(Map<String,Object>)
+    }
+    
+    class KafkaReceiver {
+        + static KafkaReceiver create(ReceiverOptions)
+        + Flux<ReceiverRecord> receive()
+    }
+    
+    class ReceiverRecord {
+        + topic(): String
+        + partition(): int
+        + offset(): long
+        + key(): Object
+        + value(): Object
+        + receiverOffset(): ReceiverOffset
+    }
+    
+    class ReceiverOffset {
+        + acknowledge(): void
+    }
+    
+    class "Retry Strategy" as Retry {
+        + fixedDelay(int, Duration): Retry
+        + onRetryExhaustedThrow(BiFunction): Retry
+    }
+    
+    class "Error Handling Flow" as ErrorFlow {
+        + doOnNext(): Mono
+        + retryWhen(): Mono
+        + doOnError(): Mono
+        + doFinally(): Mono
+        + onErrorComplete(): Mono
+    }
+    
+    class ThreadLocalRandom {
+        + current(): ThreadLocalRandom
+        + nextInt(int, int): int
+    }
+}
+
+' Relationships
+KafkaConsumerV2 --> ReceiverOptions : creates
+KafkaConsumerV2 --> KafkaReceiver : uses
+KafkaReceiver --> ReceiverRecord : produces
+ReceiverRecord --> ReceiverOffset : contains
+KafkaConsumerV2 --> ErrorFlow : implements
+ErrorFlow --> Retry : uses
+KafkaConsumerV2 --> ThreadLocalRandom : uses for error simulation
+
+' Flow annotations
+note right of KafkaConsumerV2::processMessage
+  **Processing Pipeline:**
+  1. Random error simulation
+  2. Retry mechanism (3 attempts)
+  3. Error logging
+  4. Offset acknowledgment
+  5. Error completion
+end note
+
+note right of ErrorFlow
+  **Error Handling Strategy:**
+  - Separate receiver/processor pipelines
+  - Always acknowledge offsets
+  - Convert errors to completion signals
+  - Maintain Kafka connection stability
+end note
+
+note bottom of Retry
+  **Retry Configuration:**
+  - Fixed delay: 1 second
+  - Max attempts: 3
+  - Preserve original error
+end note
+
+@enduml 
