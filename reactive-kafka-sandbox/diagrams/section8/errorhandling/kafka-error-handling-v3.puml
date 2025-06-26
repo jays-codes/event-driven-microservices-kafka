@@ -1,0 +1,82 @@
+@startuml KafkaConsumerV3 Advanced Error Handling
+
+package "Advanced Error Handling Architecture" {
+    
+    class KafkaConsumerV3 {
+        - static final Logger log
+        + static void main(String[] args)
+        - static Mono<Void> processMessage(ReceiverRecord<Object,Object>)
+        - static Retry useCustomRetrySpec()
+    }
+    
+    abstract class "Error Classification" as ErrorClass {
+        + RuntimeException: Non-retryable
+        + IndexOutOfBoundsException: Retryable
+        + Other exceptions: Propagated
+    }
+    
+    class "Retry Strategy" as RetryV3 {
+        + fixedDelay(3, 1s)
+        + filter(IndexOutOfBoundsException.class)
+        + onRetryExhaustedThrow()
+    }
+    
+    class "Error Recovery" as Recovery {
+        + onErrorResume(IndexOutOfBoundsException.class)
+        + Conditional acknowledgment
+        + Exception-specific handling
+    }
+    
+    state "Processing Flow" as Flow {
+        [*] --> MessageReceived
+        MessageReceived --> CheckKey
+        CheckKey --> RuntimeError : key == "5"
+        CheckKey --> RandomProcessing : key != "5"
+        
+        RandomProcessing --> Success : No exception
+        RandomProcessing --> IndexError : IndexOutOfBoundsException
+        
+        Success --> Acknowledge
+        
+        RuntimeError --> [*] : Immediate failure\nNo retry\nNo acknowledgment
+        
+        IndexError --> Retry : Attempt 1
+        Retry --> Retry : Attempt 2
+        Retry --> Retry : Attempt 3
+        Retry --> RetryExhausted : After 3 attempts
+        RetryExhausted --> ConditionalAck : onErrorResume
+        ConditionalAck --> [*]
+        
+        Acknowledge --> [*]
+    }
+}
+
+' Relationships
+KafkaConsumerV3 --> ErrorClass : implements
+KafkaConsumerV3 --> RetryV3 : uses
+KafkaConsumerV3 --> Recovery : implements
+ErrorClass --> Flow : defines behavior
+
+' Detailed annotations
+note right of ErrorClass
+  **Exception Strategy:**
+  • RuntimeException → Fail fast
+  • IndexOutOfBoundsException → Retry + recover
+  • Unknown exceptions → Propagate
+end note
+
+note bottom of RetryV3
+  **Selective Retry Logic:**
+  • Only retries IndexOutOfBoundsException
+  • 3 attempts with 1-second delay
+  • Preserves original error after exhaustion
+end note
+
+note left of Recovery
+  **Conditional Recovery:**
+  • Specific exception handling
+  • Targeted acknowledgment
+  • Prevents message redelivery for handled errors
+end note
+
+@enduml 
