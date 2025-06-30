@@ -66,7 +66,7 @@ public class KafkaConsumer {
         );
 
         var receiverOptions = ReceiverOptions.<String,String>create(consumerConfig)
-        .subscription(List.of("order-events"));
+        .subscription(List.of("order-events", "order-events-dlt"));
 
 
         return KafkaReceiver.create(receiverOptions);
