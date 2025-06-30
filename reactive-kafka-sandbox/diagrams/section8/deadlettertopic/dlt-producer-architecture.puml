@@ -1,0 +1,161 @@
+@startuml Dead Letter Topic Producer Architecture
+
+package "Dead Letter Topic Pattern" {
+    
+    class DLTProducer<K,V> {
+        - static final Logger log
+        - final KafkaSender<K,V> sender
+        - final Retry retrySpec
+        + DLTProducer(KafkaSender<K,V>, Retry)
+        + Mono<SenderResult<K>> produce(ReceiverRecord<K,V>)
+        - SenderRecord<K,V,K> createSenderRecord(ReceiverRecord<K,V>)
+        + Function<Mono<ReceiverRecord<K,V>>, Mono<Void>> recordProcessingErrorHandler()
+    }
+    
+    class RecordProcessingException {
+        - final ReceiverRecord<?,?> record
+        + RecordProcessingException(ReceiverRecord<?,?>, Throwable)
+        + <K,V> ReceiverRecord<K,V> getRecord()
+    }
+    
+    class KafkaConsumer {
+        - static final Logger log
+        + static void main(String[])
+        - static DLTProducer<String,String> dltProducer()
+        - static KafkaReceiver<String,String> kafkaReceiver()
+    }
+    
+    class OrderEventProcessor {
+        - final DLTProducer<String,String> dltProducer
+        - static final Logger log
+        + OrderEventProcessor(DLTProducer<String,String>)
+        + Mono<Void> process(ReceiverRecord<String,String>)
+    }
+    
+    class KafkaProducer {
+        - static final Logger log
+        + static void main(String[])
+        - static SenderRecord<String,String,String> createSenderRecord(Integer)
+    }
+}
+
+package "Reactor Kafka Components" {
+    interface KafkaSender<K,V> {
+        + Flux<SenderResult<T>> send(Publisher<SenderRecord<K,V,T>>)
+        + void close()
+    }
+    
+    class SenderRecord<K,V,T> {
+        + static SenderRecord<K,V,T> create(ProducerRecord<K,V>, T)
+        + ProducerRecord<K,V> record()
+        + T correlationMetadata()
+    }
+    
+    class ReceiverRecord<K,V> {
+        + String topic()
+        + int partition()
+        + long offset()
+        + K key()
+        + V value()
+        + ReceiverOffset receiverOffset()
+    }
+    
+    class SenderResult<T> {
+        + RecordMetadata recordMetadata()
+        + T correlationMetadata()
+        + Exception exception()
+    }
+    
+    interface ReceiverOffset {
+        + void acknowledge()
+    }
+}
+
+package "Apache Kafka Components" {
+    class ProducerRecord<K,V> {
+        + ProducerRecord(String, K, V)
+        + ProducerRecord(String, Integer, K, V)
+        + String topic()
+        + K key()
+        + V value()
+    }
+}
+
+package "Reactor Util" {
+    class Retry {
+        + static Retry fixedDelay(long, Duration)
+        + static Retry max(long)
+        + Retry filter(Predicate<Throwable>)
+        + Retry onRetryExhaustedThrow(BiFunction)
+    }
+}
+
+package "Java Util" {
+    interface Function<T,R> {
+        + R apply(T)
+    }
+}
+
+' Primary relationships
+DLTProducer --> KafkaSender : uses
+DLTProducer --> Retry : configured with
+DLTProducer --> ReceiverRecord : processes
+DLTProducer --> SenderRecord : creates
+DLTProducer --> ProducerRecord : creates
+DLTProducer --> SenderResult : returns
+DLTProducer --> Function : returns error handler
+
+RecordProcessingException --> ReceiverRecord : wraps
+KafkaConsumer --> OrderEventProcessor : creates and uses
+KafkaConsumer --> DLTProducer : creates
+OrderEventProcessor --> DLTProducer : uses for error handling
+OrderEventProcessor --> ReceiverRecord : processes
+OrderEventProcessor --> RecordProcessingException : creates on error
+
+SenderRecord --> ProducerRecord : contains
+ReceiverRecord --> ReceiverOffset : contains
+KafkaSender --> SenderResult : produces
+
+' Data flow annotations
+note right of DLTProducer
+  **Dead Letter Topic Pattern:**
+  1. Receives failed ReceiverRecord
+  2. Creates ProducerRecord with "-dlt" suffix
+  3. Sends to dead letter topic
+  4. Returns SenderResult for confirmation
+  
+  **Error Handler Function:**
+  • Provides reusable error handling pipeline
+  • Includes retry logic and DLT routing
+  • Returns function for reactive composition
+end note
+
+note bottom of RecordProcessingException
+  **Custom Exception:**
+  • Wraps original ReceiverRecord
+  • Preserves processing context
+  • Used for DLT routing decisions
+end note
+
+note left of KafkaConsumer
+  **Updated Consumer Architecture:**
+  • Creates DLTProducer and OrderEventProcessor
+  • Delegates processing to OrderEventProcessor
+  • Uses dependency injection pattern
+end note
+
+note bottom of OrderEventProcessor
+  **Modern Processing Pattern:**
+  • Uses transform() with error handler function
+  • Maps errors to RecordProcessingException
+  • Leverages DLTProducer's recordProcessingErrorHandler()
+  • Automatic retry and DLT routing
+end note
+
+' Topic flow
+note top of DLTProducer
+  **Topic Naming Convention:**
+  original-topic → original-topic-dlt
+end note
+
+@enduml 

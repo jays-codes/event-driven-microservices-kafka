@@ -1,0 +1,78 @@
+@startuml Dead Letter Topic Sequence Flow
+
+title Dead Letter Topic Processing Flow
+
+participant "Original Topic" as Topic
+participant "KafkaConsumer" as Consumer
+participant "OrderEventProcessor" as Processor
+participant "DLTProducer" as DLT
+participant "KafkaSender" as Sender
+participant "DLT Topic" as DLTTopic
+participant "Monitoring" as Monitor
+
+== Normal Processing Flow ==
+Topic -> Consumer: ReceiverRecord
+Consumer -> Processor: process(ReceiverRecord)
+Processor -> Processor: Business logic (key != "5")
+Processor -> Processor: acknowledge()
+Processor -> Consumer: Success (Mono<Void>)
+
+== Error Processing Flow (Modern Transform Pattern) ==
+Topic -> Consumer: ReceiverRecord (key="5")
+Consumer -> Processor: process(ReceiverRecord)
+Processor -> Processor: RuntimeException("Processing Exception")
+Processor -> Processor: onErrorMap(ex -> RecordProcessingException)
+note right: Maps any error to RecordProcessingException\nwith original record context
+
+Processor -> DLT: transform(recordProcessingErrorHandler())
+note right: Uses transform() operator\nto apply error handling function
+
+activate DLT
+loop Retry Attempts (max 3)
+    DLT -> DLT: retryWhen(retrySpec)
+    note right: Automatic retry with\n1-second fixed delay
+end
+
+DLT -> DLT: onErrorResume(RecordProcessingException)
+note right: After retry exhaustion\nhandle RecordProcessingException
+
+DLT -> DLT: produce(ReceiverRecord)
+DLT -> DLT: createSenderRecord()
+note right: Topic name: order-events-dlt\nPreserves key, value, headers
+DLT -> Sender: send(SenderRecord)
+
+activate Sender
+Sender -> DLTTopic: Publish to DLT
+DLTTopic -> Sender: Confirmation
+Sender -> DLT: SenderResult
+deactivate Sender
+
+DLT -> DLT: acknowledge() ReceiverRecord
+note right: Error handler automatically\nacknowledges after DLT success
+DLT -> Monitor: Log error details
+DLT -> Processor: Complete (Mono<Void>)
+deactivate DLT
+
+Processor -> Consumer: Complete processing
+
+== Architecture Summary ==
+Consumer -> Processor: **Delegation Pattern**
+note right: KafkaConsumer creates:\n• DLTProducer instance\n• OrderEventProcessor instance\n• Delegates all processing
+
+Processor -> DLT: **Function Composition**
+note right: OrderEventProcessor uses:\n• .onErrorMap() for error conversion\n• .transform() for error handler application\n• Automatic retry and DLT routing
+
+DLT -> DLT: **Unified Error Handling**
+note right: recordProcessingErrorHandler() provides:\n• Retry logic with configurable delays\n• Error type classification\n• DLT routing and acknowledgment\n• Monitoring integration
+
+== DLT Message Investigation ==
+Monitor -> DLTTopic: Query failed messages
+DLTTopic -> Monitor: Failed message details
+note right: Manual investigation\nRoot cause analysis\nSystem fixes
+
+== Optional: DLT Replay ==
+Monitor -> DLTTopic: Replay fixed messages
+DLTTopic -> Topic: Republish (after fixes)
+note right: After resolving root cause\nReprocess failed messages
+
+@enduml 
