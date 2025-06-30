@@ -3,7 +3,8 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
-- section8.deadlettertopic: [BP] UC: reprocess messages in DLT from consumer
+- section8.poisonpillmessages: UC: simulate Poison Pill messages via mismatch in message k,v serlealizer/deserializer mismatch
+- section8.deadlettertopic: UC: reprocess messages in DLT from consumer
 - section8.deadlettertopic: [BP] UC: send message that encountered exception during processing to Dead Letter topic: KafkaConsumer, OrderEventProcessor, DLTProducer.recordProcessingErrorHandler, RecordProcessingException; [BP] updated sequence and class diagrams
 - section8.errhandling.KafkaConsumerV3: [BP] UC: retry, ack and continue only for specific Exception type. Other ex type has no rety, no ack, and immed fail (e.g DB down); simulated 2 exception types
 - section8.errhandling.KafkaConsumerV2: [BP] Separate Receiver and Processor Pipelines. used retryWhen(), Retry.fixedDelay(attempts, duration), 
