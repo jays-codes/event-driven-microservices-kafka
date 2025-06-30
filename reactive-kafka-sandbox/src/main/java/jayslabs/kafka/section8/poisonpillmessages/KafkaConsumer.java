@@ -6,8 +6,10 @@ import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.CooperativeStickyAssignor;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 
 import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverOptions;
@@ -38,8 +40,8 @@ public class KafkaConsumer {
     private static KafkaReceiver<String,Integer> kafkaReceiver(){
         var consumerConfig = Map.<String, Object>of(
             ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
-            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, IntegerDeserializer.class,
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, IntegerDeserializer.class,
+            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
+            //ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, IntegerDeserializer.class,
             ConsumerConfig.GROUP_ID_CONFIG, "inventory-service-group",
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
             ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, "1",
@@ -48,10 +50,22 @@ public class KafkaConsumer {
         );
 
         var receiverOptions = ReceiverOptions.<String,Integer>create(consumerConfig)
+        .withValueDeserializer(errorHandlingDeserializer())
         .subscription(List.of("order-events"));
 
 
         return KafkaReceiver.create(receiverOptions);
+    }
+
+    private static ErrorHandlingDeserializer<Integer> errorHandlingDeserializer(){
+        var deserializer = new ErrorHandlingDeserializer<Integer>(new IntegerDeserializer());
+        deserializer.setFailedDeserializationFunction(
+            info -> {
+                log.info("Deserialization error: {}", new String(info.getData()));
+                return -10000;
+            }
+        );
+        return deserializer;
     }
     
 

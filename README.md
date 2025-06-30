@@ -3,6 +3,7 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
+- section8.poisonpillmessages: [BP] implement custom Desirializer to handle poison pill messages; ErrorHandlingDeserializer<T>, setFailedDeserializationFunction(), ReceiverOptions.withValueDeserializer()
 - section8.poisonpillmessages: UC: simulate Poison Pill messages via mismatch in message k,v serlealizer/deserializer mismatch
 - section8.deadlettertopic: UC: reprocess messages in DLT from consumer
 - section8.deadlettertopic: [BP] UC: send message that encountered exception during processing to Dead Letter topic: KafkaConsumer, OrderEventProcessor, DLTProducer.recordProcessingErrorHandler, RecordProcessingException; [BP] updated sequence and class diagrams
