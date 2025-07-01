@@ -3,7 +3,8 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
-- section9.transactions: created TransferEvent dto/record, TransferEventConsumer
+- section9.transactions: created TransferEventProcessor: has KafkaSender instance, methods: process(Flux<TransferEvent>), validate(TransferEvent):Mono<TransferEvent>, toSenderRecords(TransferEvent):Flux<SenderRecord<String,String,String>>
+- section9.transactions: created TransferEvent dto/record, TransferEventConsumer: has KafkaReceiver instance, methods: receive():Flux<TransferEvent>, toTransferEvent() - Mapper type method to convert ReceiverRecord to TransferEvent, fail()/acknowledge() - helper methods for mapper
 
 - section8.poisonpillmessages: [BP] implement custom Deserializer to handle poison pill messages; ErrorHandlingDeserializer<T>, setFailedDeserializationFunction(), ReceiverOptions.withValueDeserializer()
 - section8.poisonpillmessages: UC: simulate Poison Pill messages via mismatch in message k,v serlealizer/deserializer mismatch

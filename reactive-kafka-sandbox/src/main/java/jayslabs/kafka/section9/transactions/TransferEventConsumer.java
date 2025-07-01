@@ -24,13 +24,14 @@ public class TransferEventConsumer {
     }
 
     /*
-    Simulate a failed TransferEvent at key = 6 
-
+    
      */
     private TransferEvent toTransferEvent(ReceiverRecord<String, String> record) {
         //assume 1:a:c:100
         var arr = record.value().split(",");
         var reckey = record.key();
+
+        //Simulate a failed TransferEvent at key = 6 
         var runnable = reckey.equals("6") ? this.fail(record) : this.acknowledge(record);
         
         return new TransferEvent(
