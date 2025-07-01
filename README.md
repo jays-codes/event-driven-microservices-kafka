@@ -3,7 +3,9 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
-- section8.poisonpillmessages: [BP] implement custom Desirializer to handle poison pill messages; ErrorHandlingDeserializer<T>, setFailedDeserializationFunction(), ReceiverOptions.withValueDeserializer()
+- section9.transactions: created TransferEvent dto/record, TransferEventConsumer
+
+- section8.poisonpillmessages: [BP] implement custom Deserializer to handle poison pill messages; ErrorHandlingDeserializer<T>, setFailedDeserializationFunction(), ReceiverOptions.withValueDeserializer()
 - section8.poisonpillmessages: UC: simulate Poison Pill messages via mismatch in message k,v serlealizer/deserializer mismatch
 - section8.deadlettertopic: UC: reprocess messages in DLT from consumer
 - section8.deadlettertopic: [BP] UC: send message that encountered exception during processing to Dead Letter topic: KafkaConsumer, OrderEventProcessor, DLTProducer.recordProcessingErrorHandler, RecordProcessingException; [BP] updated sequence and class diagrams
@@ -12,6 +14,7 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 onRetryExhausted(signal -> RetrySignal.failure()), .doOnError(log), doFinally(ack offset), onErrorComplete();
 Created class diagram in diagrams/section8/errorhandling
 - section8.errhandling.KafkaConsumer: to demo error handling while processing msg in Consumer
+
 - section7.parallelordered.KafkaConsumer: [BP] UC:enable ordering of messages with Parallel processing; used .groupBy(), GroupedFlux, flatMap() 
 - section7.parallel.KafkaConsumer: [BP] used Bounded Elastic Scheduler to run processing (blocking) to a separate thread pool; .publishOn(Schedulers.boundedElastic())
 - section7.parallel.KafkaConsumer: UC:Parallel Processing using flatMap()
@@ -19,6 +22,7 @@ Created class diagram in diagrams/section8/errorhandling
 - package:section7.batch - initial create of classes for Batch and Parallel Processing
 - package:section4.seekoffset: KafkaProducer, KafkaConsumer: uses .addAssignListener(), Collection<ReceiverPartition>, ReceiverPartition.topicPartition(), .partition(), .position(), .seek();
 seekToLastMessagesForPartition()  - to go to last N message of a given x partition; seekToBeginning(), seekToEnd(), seekToTimestamp() 
+
 - [BP] set ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG : CooperativeStickyAssignor - for partition reassignment to consumer instances in cg
 - section4.consumergroup.KafkaConsumer/KafkaProducer/KafkaConsumerGroup; setup topic (order-events) with 3 partitions
 - KafkaProducer: add message headers to ProducerRecord. Used RecordHeaders
