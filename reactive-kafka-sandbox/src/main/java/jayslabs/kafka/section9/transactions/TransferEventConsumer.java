@@ -29,25 +29,24 @@ public class TransferEventConsumer {
     private TransferEvent toTransferEvent(ReceiverRecord<String, String> record) {
         //assume 1:a:c:100
         var arr = record.value().split(",");
-        var reckey = record.key();
-
+        
         //Simulate a failed TransferEvent at key = 6 
-        var runnable = reckey.equals("6") ? this.fail(record) : this.acknowledge(record);
+        var runnable = record.key().equals("6") ? this.fail() : this.ack(record);
         
         return new TransferEvent(
-            reckey,
+            record.key(),
+            arr[0],
             arr[1],
-            arr[2],
-            Integer.parseInt(arr[3]), //amount
+            arr[2], //amount
             runnable
         );
     }
 
-    private Runnable acknowledge(ReceiverRecord<String, String> record) {
+    private Runnable ack(ReceiverRecord<String, String> record) {
         return () -> record.receiverOffset().acknowledge();
     }
 
-    private Runnable fail(ReceiverRecord<String, String> record) {
+    private Runnable fail() {
         return () -> {
             throw new RuntimeException("Error while ack");
         };

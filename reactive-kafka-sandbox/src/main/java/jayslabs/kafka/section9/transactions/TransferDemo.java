@@ -55,7 +55,8 @@ public class TransferDemo {
         var producerConfig = Map.<String, Object>of(
             ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
+            ProducerConfig.TRANSACTIONAL_ID_CONFIG, "transfer-tx-id"
         );
 
         var senderOptions = SenderOptions.<String, String>create(producerConfig);

@@ -4,7 +4,7 @@ public record TransferEvent(
     String key,
     String from,
     String to,
-    int amount,
+    String amount,
     Runnable acknowledge
 ) {
 

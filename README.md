@@ -3,6 +3,12 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
+- Demo Class Execution Steps:
+    1.) Create topics by running line #1&2 of script
+    2.) open kafka bash and run a console producer for transfer-request topic
+    3.) open separate kafka bash for two console consumers to demo isolation-level setting
+    4.) in producer console, run > 1:a,b,15 to test. Exceptions would happen at id=5 and 6 
+- added kafka bash scripts, Section9-transaction.sh; Demo steps
 - section9.transactions: created Demo class; added Mono.delay() in sendTransaction()
 - section9.transactions: updated TransferEventProcessor to immplement KafkaSender.transactionManager() in new method sendTransaction(TransferEvent):Mono<SenderResult<String>>; implemented process() to return Flux<SenderResult>, calling validate() and sendTransaction() for each item in Flux<TransferEvent>
 - section9.transactions: created TransferEventProcessor: has KafkaSender instance, methods: process(Flux<TransferEvent>), validate(TransferEvent):Mono<TransferEvent>, toSenderRecords(TransferEvent):Flux<SenderRecord<String,String,String>>
