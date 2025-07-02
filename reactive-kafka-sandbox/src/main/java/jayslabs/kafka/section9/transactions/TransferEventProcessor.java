@@ -1,5 +1,6 @@
 package jayslabs.kafka.section9.transactions;
 
+import java.time.Duration;
 import java.util.function.Predicate;
 
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -36,7 +37,11 @@ public class TransferEventProcessor {
         .then(
             this.sender
             .send(senderRecords)
-            .concatWith(Mono.fromRunnable(event.acknowledge()))
+            .concatWith(
+                Mono.delay(Duration.ofSeconds(1)).then(
+                    Mono.fromRunnable(event.acknowledge())
+                )
+            )
             .concatWith(manager.commit())
             .last()
         )

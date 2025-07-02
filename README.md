@@ -3,6 +3,7 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
+- section9.transactions: created Demo class; added Mono.delay() in sendTransaction()
 - section9.transactions: updated TransferEventProcessor to immplement KafkaSender.transactionManager() in new method sendTransaction(TransferEvent):Mono<SenderResult<String>>; implemented process() to return Flux<SenderResult>, calling validate() and sendTransaction() for each item in Flux<TransferEvent>
 - section9.transactions: created TransferEventProcessor: has KafkaSender instance, methods: process(Flux<TransferEvent>), validate(TransferEvent):Mono<TransferEvent>, toSenderRecords(TransferEvent):Flux<SenderRecord<String,String,String>>
 - section9.transactions: created TransferEvent dto/record, TransferEventConsumer: has KafkaReceiver instance, methods: receive():Flux<TransferEvent>, toTransferEvent() - Mapper type method to convert ReceiverRecord to TransferEvent, fail()/acknowledge() - helper methods for mapper
