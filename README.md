@@ -3,8 +3,12 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
+
+- section10.springkafka: created kafka entries in application.yaml; create KafkaConsumerConfig(@Configuration) with @Bean methods -receiverOptions(KafkaProperties):ReceiverOptions<String, String>, and consumerTemplate(ReceiverOptions<String,String>):ReactiveKafkaConsumerTemplate<String,String>
+
+- section9.transactions: Updated TransferEventProcessor to implement useSendTransactionally() which uses KafkaSender.sendTransactionally()
 - Demo Class Execution Steps:
-    1.) Create topics by running line #1&2 of script
+    1.) Create topics by running line #1&2 of script Section9-transaction.sh
     2.) open kafka bash and run a console producer for transfer-request topic
     3.) open separate kafka bash for two console consumers to demo isolation-level setting
     4.) in producer console, run > 1:a,b,15 to test. Exceptions would happen at id=5 and 6 

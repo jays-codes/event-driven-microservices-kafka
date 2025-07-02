@@ -26,6 +26,7 @@ public class TransferDemo {
         .receive()
         .transform(txferEventProcessor::process)
         .doOnNext(r -> log.info("transfer success: {}", r.correlationMetadata()))
+//        .doOnNext(r -> log.info("transfer success: {}", r))
         .doOnError(e -> log.error("transfer failed: {}", e.getMessage()))
         .subscribe();
 
@@ -41,7 +42,7 @@ public class TransferDemo {
             ConsumerConfig.GROUP_ID_CONFIG, "inventory-service-group",
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
             ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, "1",
-//            ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true,
+            ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false,
             ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, CooperativeStickyAssignor.class.getName()
         );
 

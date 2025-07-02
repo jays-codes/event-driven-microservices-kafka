@@ -14,7 +14,9 @@ public class TransferEventConsumer {
     private final KafkaReceiver<String, String> receiver;
 
     public Flux<TransferEvent> receive(){
-        return this.receiver.receive()
+        return this.receiver
+        .receive()
+        //.receiveAtmostOnce()
         .doOnNext(r -> log.info("Received record: {}", r.value()))
         .map(this::toTransferEvent);
     }

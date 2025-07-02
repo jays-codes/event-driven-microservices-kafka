@@ -23,11 +23,19 @@ public class TransferEventProcessor {
         this.sender = sender;
     }
 
+    // old implementation
     public Flux<SenderResult<String>> process(Flux<TransferEvent> flux){
         return flux
         .concatMap(this::validate)
         .concatMap(this::sendTransaction);
     }
+
+
+    // public Flux<Void> process(Flux<TransferEvent> flux){
+    //     return flux
+    //     .concatMap(this::validate)
+    //     .concatMap(this::useSendTransactionally);
+    // }
 
     private Mono<SenderResult<String>> sendTransaction(TransferEvent event){
         var senderRecords = this.toSenderRecords(event);
@@ -48,6 +56,22 @@ public class TransferEventProcessor {
         .doOnError(ex -> log.error(ex.getMessage()))
         .onErrorResume(ex -> manager.abort());
     
+    }
+
+
+    /**
+     * Alternative implementation using KafkaSender.sendTransactionally()
+     * which handles transaction lifecycle automatically (begin/commit/abort)
+     */
+    private Mono<Void> useSendTransactionally(TransferEvent event){
+        var senderRecords = this.toSenderRecords(event);
+
+        return this.sender.sendTransactionally(Mono.just(senderRecords))
+//        .then(Mono.delay(Duration.ofSeconds(3)))
+//        .then(Mono.fromRunnable(event::acknowledge))
+        .then()
+        .doOnError(ex -> log.error("Transaction failed: {}", ex.getMessage()));
+        // Note: sendTransactionally() automatically handles abort on error
     }
 
     
