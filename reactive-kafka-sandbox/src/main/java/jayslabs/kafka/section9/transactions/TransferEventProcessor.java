@@ -10,6 +10,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.kafka.sender.KafkaSender;
 import reactor.kafka.sender.SenderRecord;
+import reactor.kafka.sender.SenderResult;
 
 public class TransferEventProcessor {
 
@@ -21,10 +22,30 @@ public class TransferEventProcessor {
         this.sender = sender;
     }
 
-    public void process(Flux<TransferEvent> events){
+    public Flux<SenderResult<String>> process(Flux<TransferEvent> flux){
+        return flux
+        .concatMap(this::validate)
+        .concatMap(this::sendTransaction);
+    }
+
+    private Mono<SenderResult<String>> sendTransaction(TransferEvent event){
+        var senderRecords = this.toSenderRecords(event);
+
+        var manager = this.sender.transactionManager();
+        return manager.begin()
+        .then(
+            this.sender
+            .send(senderRecords)
+            .concatWith(Mono.fromRunnable(event.acknowledge()))
+            .concatWith(manager.commit())
+            .last()
+        )
+        .doOnError(ex -> log.error(ex.getMessage()))
+        .onErrorResume(ex -> manager.abort());
     
     }
 
+    
     //simulate not enough money error at key =5 
     private Mono<TransferEvent> validate(TransferEvent event){
         return Mono.just(event)
