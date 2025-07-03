@@ -13,13 +13,13 @@ import reactor.kafka.receiver.ReceiverOptions;
 public class KafkaConsumerConfig {
 
     @Bean
-    public ReceiverOptions<String, String> receiverOptions(KafkaProperties kafkaProperties){
-        return ReceiverOptions.<String, String>create(kafkaProperties.buildConsumerProperties())
+    public ReceiverOptions<String, OrderEventDTO> receiverOptions(KafkaProperties kafkaProperties){
+        return ReceiverOptions.<String, OrderEventDTO>create(kafkaProperties.buildConsumerProperties())
         .subscription(List.of("order-events"));
     }
 
     @Bean
-    public ReactiveKafkaConsumerTemplate<String, String> consumerTemplate(ReceiverOptions<String, String> receiverOptions){
+    public ReactiveKafkaConsumerTemplate<String, OrderEventDTO> consumerTemplate(ReceiverOptions<String, OrderEventDTO> receiverOptions){
         return new ReactiveKafkaConsumerTemplate<>(receiverOptions);
     }
 }

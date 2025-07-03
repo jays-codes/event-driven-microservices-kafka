@@ -15,7 +15,7 @@ public class ConsumerRunner implements CommandLineRunner {
     private final Logger log = LoggerFactory.getLogger(ConsumerRunner.class);
     
     @Autowired
-    private ReactiveKafkaConsumerTemplate<String, String> consumerTemplate;
+    private ReactiveKafkaConsumerTemplate<String, OrderEventDTO> consumerTemplate;
 
 
     @Override

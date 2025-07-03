@@ -4,6 +4,7 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
 
+- section10.springKafka: created OrderEventDTO, modified ReceiverOptions, ReactiveKafkaConsumerTemplate to <String, OrderEventDTO>, modified application yaml value-deserializerto use JsonDeserializer type
 - section10.springkafka: created ConsumerRunner (@Service) with consumerTemplate:ReactiveKafkaConsumerTemplate<String,String> (@Autowired; implements <<CommandLineRunner>>) to test Spring Kafka config
 - section10.springkafka: created kafka entries in application.yaml; create KafkaConsumerConfig(@Configuration) with @Bean methods -receiverOptions(KafkaProperties):ReceiverOptions<String, String>, and consumerTemplate(ReceiverOptions<String,String>):ReactiveKafkaConsumerTemplate<String,String>
 
