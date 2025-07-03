@@ -1,8 +1,8 @@
 #spring.application.name=reactive-kafka-sandbox
 
 spring:
-  application:
-    name: reactive-kafka-sandbox
+  #application:
+  #  name: reactive-kafka-sandbox
 
   kafka:
     bootstrap-servers:
@@ -11,10 +11,11 @@ spring:
       group-id: demo-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       properties:
         "group.instance.id": "1"
         "spring.json.trusted.packages": "jayslabs.kafka.section10.springkafka"
+        "spring.deserializer.value.delegate.class": "org.apache.kafka.common.serialization.StringDeserializer"
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
