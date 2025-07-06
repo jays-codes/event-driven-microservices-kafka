@@ -31,7 +31,7 @@ public class ProducerRunner implements CommandLineRunner {
 
     private Flux<OrderEventDTO> generateOrderEvents(){
         return Flux.interval(Duration.ofMillis(500))
-        .take(1000)
+        .take(25)
         .map(i -> new OrderEventDTO(UUID.randomUUID(), i, LocalDateTime.now()));
     }
 }

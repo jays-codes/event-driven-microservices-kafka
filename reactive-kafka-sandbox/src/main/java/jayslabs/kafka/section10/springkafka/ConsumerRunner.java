@@ -21,8 +21,9 @@ public class ConsumerRunner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         this.consumerTemplate.receive()
-        .doOnNext(r -> log.info("Received record - key: {}, value: {}, partition: {}, offset: {}", 
-                r.key(), r.value(), r.partition(), r.offset()))
+        // .doOnNext(r -> log.info("Received record - key: {}, value: {}, partition: {}, offset: {}", 
+        //         r.key(), r.value(), r.partition(), r.offset()))
+        .doOnNext(r -> r.headers().forEach(h -> log.info("header key: {}, value: {}", h.key(), new String(h.value()))))
         .doOnError(ex -> log.error("Error processing record: {}", ex.getMessage()))
         .onErrorResume(ex -> {
             log.warn("Skipping problematic record and continuing...");
