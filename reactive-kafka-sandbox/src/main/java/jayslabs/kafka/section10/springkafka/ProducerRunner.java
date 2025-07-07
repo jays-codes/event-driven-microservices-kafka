@@ -25,12 +25,12 @@ public class ProducerRunner implements CommandLineRunner {
     public void run(String... args) throws Exception {
         this.generateOrderEvents()
         .flatMap(oe -> template.send("order-events", oe.orderId().toString(), oe))
-        .doOnNext(r -> log.info("Sender Result - key: {}, value: {}", r.recordMetadata()))
+        .doOnNext(r -> log.info("Result: {}", r.recordMetadata()))
         .subscribe();
     }
 
     private Flux<OrderEventDTO> generateOrderEvents(){
-        return Flux.interval(Duration.ofMillis(500))
+        return Flux.interval(Duration.ofMillis(100))
         .take(25)
         .map(i -> new OrderEventDTO(UUID.randomUUID(), i, LocalDateTime.now()));
     }

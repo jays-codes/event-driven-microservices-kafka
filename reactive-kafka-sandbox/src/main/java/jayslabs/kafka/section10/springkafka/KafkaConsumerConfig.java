@@ -14,14 +14,16 @@ import reactor.kafka.receiver.ReceiverOptions;
 public class KafkaConsumerConfig {
 
     @Bean
-    public ReceiverOptions<String, OrderEventDTO> receiverOptions(KafkaProperties kafkaProperties){
-        return ReceiverOptions.<String, OrderEventDTO>create(kafkaProperties.buildConsumerProperties())
+    public ReceiverOptions<String, ConsumerOrderDTO> receiverOptions(KafkaProperties kafkaProperties){
+        return ReceiverOptions.<String, ConsumerOrderDTO>create(kafkaProperties.buildConsumerProperties())
         .consumerProperty(JsonDeserializer.REMOVE_TYPE_INFO_HEADERS, "false")
+        .consumerProperty(JsonDeserializer.USE_TYPE_INFO_HEADERS, "false")
+        .consumerProperty(JsonDeserializer.VALUE_DEFAULT_TYPE, ConsumerOrderDTO.class)
         .subscription(List.of("order-events"));
     }
 
     @Bean
-    public ReactiveKafkaConsumerTemplate<String, OrderEventDTO> consumerTemplate(ReceiverOptions<String, OrderEventDTO> receiverOptions){
+    public ReactiveKafkaConsumerTemplate<String, ConsumerOrderDTO> consumerTemplate(ReceiverOptions<String, ConsumerOrderDTO> receiverOptions){
         return new ReactiveKafkaConsumerTemplate<>(receiverOptions);
     }
 }
