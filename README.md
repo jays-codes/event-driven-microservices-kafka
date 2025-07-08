@@ -4,6 +4,8 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
 
+- src/test - Created Test Class: @EmbeddedKafka(ports, partitions, brokerProperties, topics), TestConsumer and TestProducer inner classes, @Test
+
 - section10.springkafka: [BP] UC: Decode Kafka message with Consumer Custom Type (different from Type specified in header); Created custom Consumer DTO type, updated Consumer code to use custom DTO, updated Kafka consumer properties ( .consumerProperty(JsonDeserializer.VALUE_DEFAULT_TYPE, ConsumerOrderDTO.class), yaml -> "spring.json.value.default.type": "jayslabs.kafka.section10.springkafka.ConsumerOrderDTO")
 - section10.springkafka: UC:add/log type info header - changes to ConsumerRunner(log Header info), ConsumerConfig(add consumerProperty)
 - section10.springKafka: created ProducerRunner (@Service) with template:ReactiveKafkaProducerTemplate<String,OrderEventDTO> (@Autowired; implements <<CommandLineRunner>>) to test Spring Kafka config; generateOrderEvents()Flux<OrderEventDTO>; run() - calls generateOrderEvents() and process SenderResults
