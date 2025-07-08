@@ -14,8 +14,8 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       properties:
         "group.instance.id": "1"
-        "spring.json.value.default.type": "jayslabs.kafka.section10.springkafka.ConsumerOrderDTO"
-        "spring.json.trusted.packages": "jayslabs.kafka.section10.springkafka"
+        "spring.json.value.default.type": "jayslabs.kafka.section11.integrationtest.consumer.ConsumerOrderDTO"
+        "spring.json.trusted.packages": "jayslabs.kafka.section11.integrationtest.consumer"
         "spring.deserializer.value.delegate.class": "org.springframework.kafka.support.serializer.JsonDeserializer"
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
