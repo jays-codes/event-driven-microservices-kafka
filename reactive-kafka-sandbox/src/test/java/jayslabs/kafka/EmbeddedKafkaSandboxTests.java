@@ -13,6 +13,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.kafka.test.condition.EmbeddedKafkaCondition;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 
 import reactor.core.publisher.Flux;
@@ -24,8 +25,9 @@ import reactor.kafka.sender.SenderOptions;
 import reactor.kafka.sender.SenderRecord;
 import reactor.test.StepVerifier;
 
+
 @EmbeddedKafka(
-	ports = 9092,
+	//ports = 9092,
 	partitions = 1,
 	brokerProperties = { "auto.create.topics.enable=false" },
 	topics = { "order-events" }
@@ -35,20 +37,25 @@ class EmbeddedKafkaSandboxTests {
 
 	@Test
 	void embeddedKafkaDemo() {
-		StepVerifier.create(TestProducer.run())
+
+		var broker = EmbeddedKafkaCondition.getBroker().getBrokersAsString();
+
+		StepVerifier.create(TestProducer.run(broker))
 		.verifyComplete();
 
-		StepVerifier.create(TestConsumer.run())
+		StepVerifier.create(TestConsumer.run(broker))
 		.verifyComplete();
+
+		//System.out.println("-----------BROKER----------------------" + EmbeddedKafkaCondition.getBroker().getBrokersAsString());
 	}
 
 
 	private static class TestProducer{
 		private static final Logger log = LoggerFactory.getLogger(TestProducer.class);
 	
-		public static Mono<Void> run() {
+		public static Mono<Void> run(String broker) {
 			var producerConfig = Map.<String, Object>of(
-				ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
+				ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, broker,
 				ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
 				ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class
 			);
@@ -73,10 +80,10 @@ class EmbeddedKafkaSandboxTests {
 	private static class TestConsumer{
 		private static final Logger log = LoggerFactory.getLogger(TestConsumer.class);
 
-		public static Mono<Void> run() {
+		public static Mono<Void> run(String broker) {
 	
 			var consumerConfig = Map.<String, Object>of(
-				ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
+				ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, broker,
 				ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
 				ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
 				ConsumerConfig.GROUP_ID_CONFIG, "demo-group-123",
