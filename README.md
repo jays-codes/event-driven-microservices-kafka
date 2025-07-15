@@ -4,6 +4,7 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
 
+- section11.integrationtest; created AbstractIntegrationTest(@SpringBootTest, @EmbeddedKafka) in src/test/java - has broker:EmbeddedKafkaBroker(@Autowired), createReceiver():<K,V> KafkaReceiver<K,V> that calls KafkaTestUtils, consumerProps()
 - section11.integrationtest; restructured code for section10 into consumer/producer packages to facilitate testing
 - Updated test to get Random port via EmbeddedKafkaCondition.getBroker()
 - src/test - Created Test Class: @EmbeddedKafka(ports, partitions, brokerProperties, topics), TestConsumer and TestProducer inner classes, @Test
