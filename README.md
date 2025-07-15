@@ -4,6 +4,7 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
 
+- section11.integrationtest: created OrderEventConsumerTest (extends AIT). Testing for: msg is sent to topic and asserts on value written to log
 - section11.integrationtest: [BP] updated AIT to add createSender() util methods and toSenderRecord():<K,V> SenderRecord<K,V,K> 
 - section11.integrationtest: [BP] used @DirtiesContext to reset Spring app context after test run
 - section11.integrationtest: [BP] created OrderEventProducerTest extends AIT. Testing for: producer is running, 10 msgs published to topic, msgs can be deserialized as OrderEventDTO, msgs orderId is not null, all 10 msgs arrive within 10 secs
