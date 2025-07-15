@@ -4,6 +4,7 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
 
+- [BP] used @DirtiesContext to reset Spring app context after test run
 - section11.integrationtest: [BP] created OrderEventProducerTest extends AIT. Testing for: producer is running, 10 msgs published to topic, msgs can be deserialized as OrderEventDTO, msgs orderId is not null, all 10 msgs arrive within 10 secs
 - section11.integrationtest; [BP - use this as template] created base class for integration tests that need to test Kafka functionality. It sets up an embedded Kafka broker for testing and provides helper methods to create Kafka consumers easily.: AbstractIntegrationTest(@SpringBootTest, @EmbeddedKafka) in src/test/java - has broker:EmbeddedKafkaBroker(@Autowired), createReceiver():<K,V> KafkaReceiver<K,V> that calls KafkaTestUtils, consumerProps()
 - section11.integrationtest; restructured code for section10 into consumer/producer packages to facilitate testing
