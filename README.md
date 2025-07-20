@@ -1,6 +1,10 @@
 # event-driven-microservices-kafka
 Jay's project/practice repo for Event-driven Microservice using Kafka
 
+#### demo proj: product-analytics-project
+- product-analytics-project/products: created data.sql, product.csv, app.yaml; created *.entity.Product, *.dto.ProductDTO, *.repository.<<ProductRepository>> (extends <<ReactiveCrudRepository<Product,Integer>>>), *.mapper.ProductsMapper, *.config.KafkaProducerConfig, *.event.ProductViewEvent,  *.controller.ProductsController
+- created microservice project: product-analytics-project/products; jayslabs.kafka:products, jdk 21, sb 3.5.3; dep: Spring Reactive Web, Spring Data R2DBC, Spring for Apache Kafka, reactor-kafka, lombok, H2;
+- Refer to README2.md
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
 
