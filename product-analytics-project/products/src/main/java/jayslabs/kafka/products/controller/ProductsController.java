@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jayslabs.kafka.products.dto.ProductDTO;
+import jayslabs.kafka.products.service.ProductsService;
 import lombok.AllArgsConstructor;
 import reactor.core.publisher.Mono;
 
@@ -16,8 +17,10 @@ import reactor.core.publisher.Mono;
 @RequestMapping("product")
 public class ProductsController {
 
+    private final ProductsService productsService;
+
     @GetMapping("{productId}")
     public Mono<ProductDTO> viewProduct(@PathVariable Integer productId) {
-        return Mono.empty();
+        return productsService.getProduct(productId);
     }
 }
