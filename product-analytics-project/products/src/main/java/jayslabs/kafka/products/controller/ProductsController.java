@@ -21,6 +21,6 @@ public class ProductsController {
 
     @GetMapping("{productId}")
     public Mono<ProductDTO> viewProduct(@PathVariable Integer productId) {
-        return productsService.getProduct(productId);
+        return this.productsService.getProduct(productId);
     }
 }

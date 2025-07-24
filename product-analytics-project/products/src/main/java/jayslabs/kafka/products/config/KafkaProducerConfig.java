@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 
 import jayslabs.kafka.products.event.ProductViewEvent;
+import jayslabs.kafka.products.service.ProductViewEventProducer;
+import reactor.core.publisher.Sinks;
 import reactor.kafka.sender.SenderOptions;
 
 @Configuration
@@ -21,4 +23,14 @@ public class KafkaProducerConfig {
     }
 
 
+    @Bean
+    public ProductViewEventProducer productViewEventProducer(ReactiveKafkaProducerTemplate<String, ProductViewEvent> template) {
+        var sink = Sinks.many().unicast().<ProductViewEvent>onBackpressureBuffer();
+        var flux = sink.asFlux();
+
+        var producer = new ProductViewEventProducer(
+            template, sink, flux, "product-view-events");
+        producer.subscribe();
+        return producer;
+    }
 }
