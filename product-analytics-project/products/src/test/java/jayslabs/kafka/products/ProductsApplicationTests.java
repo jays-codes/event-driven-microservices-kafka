@@ -20,9 +20,10 @@ class ProductsApplicationTests extends AbstractIntegrationTest {
 	@Test
 	void testProductViewAndEvents() {
 		//view products
-		viewProduct(1);
-		viewProduct(1);
-		viewProduct(5);
+		viewProductSuccess(1);
+		viewProductSuccess(1);
+		viewProductNotFound(1000);
+		viewProductSuccess(5);
 
 		//check if events are available in the topic
 		var flux = this.<ProductViewEvent>createReceiver(PRODUCT_VIEW_EVENTS)
@@ -36,7 +37,7 @@ class ProductsApplicationTests extends AbstractIntegrationTest {
 		.verifyComplete();
 	}
 
-	private void viewProduct(int productId) {
+	private void viewProductSuccess(int productId) {
 		webclient
 		.get()
 		.uri("/product/" + productId)
@@ -45,6 +46,14 @@ class ProductsApplicationTests extends AbstractIntegrationTest {
 		.expectBody()
 		.jsonPath("$.id").isEqualTo(productId)
 		.jsonPath("$.description").isEqualTo("product-" + productId);
+	}
+
+	private void viewProductNotFound(int productId) {
+		webclient
+		.get()
+		.uri("/product/" + productId)
+		.exchange()
+		.expectStatus().is4xxClientError();
 	}
 
 }

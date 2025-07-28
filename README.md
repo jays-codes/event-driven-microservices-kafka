@@ -2,6 +2,7 @@
 Jay's project/practice repo for Event-driven Microservice using Kafka
 
 #### demo proj: product-analytics-project
+- product-analytics-project/products: updated controller api to return Mono<ResponseEntity<ProductDTO>>, updated Test class
 - product-analytics-project/products: created integration test components: ProductsApplicationTests (extends <<AbstractIntegrationTest>>); uses WebTestClient
 - product-analytics-project/products: created references to PVEP from ServiceImpl, Controller; defined @Bean for PVEP in KafkaProducerConfig
 - [BP] product-analytics-project/products: created *.service.ProductViewEventProducer. This is autowired and invoked inside ProductServiceImpl to write events to kafka topic.

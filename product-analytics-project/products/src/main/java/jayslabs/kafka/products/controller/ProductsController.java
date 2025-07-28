@@ -1,5 +1,6 @@
 package jayslabs.kafka.products.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +21,9 @@ public class ProductsController {
     private final ProductsService productsService;
 
     @GetMapping("{productId}")
-    public Mono<ProductDTO> viewProduct(@PathVariable Integer productId) {
-        return this.productsService.getProduct(productId);
+    public Mono<ResponseEntity<ProductDTO>> viewProduct(@PathVariable Integer productId) {
+        return this.productsService.getProduct(productId)
+        .map(ResponseEntity::ok)
+        .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 }
