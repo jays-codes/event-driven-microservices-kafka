@@ -1,0 +1,104 @@
+@startuml ProductViewEventConsumer Sequence Diagram
+
+title ProductViewEventConsumer - Batch Processing Flow
+
+participant "Kafka Topic<br/>(product-view-events)" as Kafka
+participant "ReactiveKafkaConsumerTemplate" as Template
+participant "ProductViewEventConsumer" as Consumer
+participant "ProductViewRepository" as Repository
+participant "Database<br/>(H2)" as DB
+
+== Initialization ==
+Consumer -> Template: subscribe() @PostConstruct
+activate Consumer
+Template -> Template: receive()
+note right: Creates reactive stream<br/>of ReceiverRecord messages
+
+== Batch Collection ==
+loop Continuous Message Processing
+    Kafka -> Template: ProductViewEvent messages
+    activate Template
+    Template -> Template: bufferTimeout(1000, Duration.ofSeconds(1))
+    note right: **Batching Strategy:**<br/>• Collect up to 1000 messages<br/>• OR wait max 1 second<br/>• Whichever comes first
+    
+    Template -> Consumer: process(List<ReceiverRecord<String, ProductViewEvent>>)
+    activate Consumer
+    
+    == Step 1: Event Aggregation ==
+    Consumer -> Consumer: events.stream()<br/>.map(r -> r.value().getProductId())<br/>.collect(groupingBy(identity(), counting()))
+    note right: **Creates evtMap:**<br/>{<br/>  1: 3,  // Product 1 had 3 views<br/>  2: 1,  // Product 2 had 1 view<br/>  5: 2   // Product 5 had 2 views<br/>}
+    
+    == Step 2: Database Lookup ==
+    Consumer -> Repository: findAllById(evtMap.keySet())
+    activate Repository
+    Repository -> DB: SELECT * FROM product_view_count<br/>WHERE id IN (1, 2, 5)
+    activate DB
+    DB -> Repository: Flux<ProductViewCount>
+    deactivate DB
+    Repository -> Consumer: Flux<ProductViewCount>
+    deactivate Repository
+    
+    Consumer -> Consumer: collectMap(ProductViewCount::getId)
+    note right: **Creates dbMap:**<br/>{<br/>  1: ProductViewCount{id=1, count=100},<br/>  2: ProductViewCount{id=2, count=50}<br/>  // Product 5 not in DB yet<br/>}
+    
+    Consumer -> Consumer: defaultIfEmpty(Collections.emptyMap())
+    note right: Handles case where no<br/>existing records found
+    
+    == Step 3: Update Logic ==
+    loop For each productId in evtMap.keySet()
+        Consumer -> Consumer: updateViewCount(dbMap, evtMap, productId)
+        
+        alt Product exists in database
+            note right of Consumer: **Update existing:**<br/>pvc = dbMap.get(productId)<br/>pvc.setCount(existing + new)<br/>pvc.setNew(false)
+        else Product is new
+            note right of Consumer: **Create new:**<br/>pvc = new ProductViewCount(id, 0L, true)<br/>pvc.setCount(0 + new)<br/>pvc.setNew(false)
+        end
+        
+        Consumer -> Consumer: Return updated ProductViewCount
+    end
+    
+    note right of Consumer: **Result List:**<br/>[<br/>  ProductViewCount{id=1, count=103, isNew=false},<br/>  ProductViewCount{id=2, count=51, isNew=false},<br/>  ProductViewCount{id=5, count=2, isNew=false}<br/>]
+    
+    == Step 4: Database Persistence ==
+    Consumer -> Repository: saveAll(List<ProductViewCount>)
+    activate Repository
+    
+    loop For each ProductViewCount
+        Repository -> DB: Upsert operation
+        activate DB
+        note right: **Spring Data R2DBC automatically:**<br/>• UPDATE for existing records<br/>• INSERT for new records<br/>based on Persistable.isNew()
+        
+        alt Existing record
+            DB -> DB: UPDATE product_view_count<br/>SET count = ? WHERE id = ?
+        else New record  
+            DB -> DB: INSERT INTO product_view_count<br/>(id, count) VALUES (?, ?)
+        end
+        deactivate DB
+    end
+    
+    Repository -> Consumer: Flux<ProductViewCount> (saved entities)
+    deactivate Repository
+    
+    == Step 5: Acknowledgment ==
+    Consumer -> Consumer: doOnComplete(() -> <br/>events.get(events.size() - 1)<br/>.receiverOffset().acknowledge())
+    note right: **Acknowledge last message**<br/>commits entire batch offset<br/>to Kafka
+    
+    Consumer -> Template: Mono<Void> (completion signal)
+    deactivate Consumer
+    Template -> Template: Subscribe to next batch
+    deactivate Template
+    
+    == Error Handling ==
+    note over Consumer, Repository: **On Error:**<br/>• doOnError logs the exception<br/>• Batch is NOT acknowledged<br/>• Messages will be reprocessed<br/>• Maintains at-least-once delivery
+end
+
+== Architecture Benefits ==
+note over Kafka, DB
+  **High Throughput:** Batch processing reduces DB calls
+  **Fault Tolerance:** Failed batches are retried  
+  **Efficiency:** Single transaction per batch
+  **Upsert Logic:** Handles both updates and inserts seamlessly
+  **Backpressure:** bufferTimeout prevents memory issues
+end note
+
+@enduml

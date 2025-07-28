@@ -1,0 +1,170 @@
+@startuml ProductViewEventConsumer Class Diagram
+
+title ProductViewEventConsumer - Core Architecture
+
+package "Service Layer" {
+    class ProductViewEventConsumer {
+        - final ReactiveKafkaConsumerTemplate template
+        - final ProductViewRepository pvrepo
+        
+        + ProductViewEventConsumer(ReactiveKafkaConsumerTemplate, ProductViewRepository)
+        + void subscribe()
+        - Mono process(List events)
+        - ProductViewCount updateViewCount(Map dbMap, Map evtMap, int productId)
+    }
+}
+
+package "Repository Layer" {
+    interface ProductViewRepository {
+        + Flux findTop5ByOrderByCountDesc()
+        + Flux findAllById(Iterable ids)
+        + Flux saveAll(Iterable entities)
+    }
+    
+    interface ReactiveCrudRepository {
+        + Flux findAllById(Iterable ids)
+        + Flux saveAll(Iterable entities)
+    }
+}
+
+package "Entity Layer" {
+    class ProductViewCount {
+        + Integer id
+        + Long count
+        + boolean isNew
+        
+        + ProductViewCount(Integer id, Long count, boolean isNew)
+        + boolean isNew()
+        + Integer getId()
+        + Long getCount()
+        + void setCount(Long count)
+        + void setNew(boolean isNew)
+    }
+    
+    interface Persistable {
+        + Object getId()
+        + boolean isNew()
+    }
+}
+
+package "Event Layer" {
+    class ProductViewEvent {
+        + Integer productId
+        
+        + Integer getProductId()
+        + void setProductId(Integer productId)
+    }
+}
+
+package "Kafka Integration" {
+    class ReactiveKafkaConsumerTemplate {
+        - ReceiverOptions receiverOptions
+        
+        + ReactiveKafkaConsumerTemplate(ReceiverOptions options)
+        + Flux receive()
+    }
+    
+    class ReceiverRecord {
+        - Object key
+        - Object value
+        - ReceiverOffset receiverOffset
+        
+        + Object key()
+        + Object value()
+        + ReceiverOffset receiverOffset()
+    }
+    
+    class ReceiverOffset {
+        + void acknowledge()
+    }
+}
+
+package "Reactive Streams" {
+    class Mono {
+        + Mono then()
+        + Mono map(Function mapper)
+        + Mono flatMap(Function mapper)
+        + Flux flatMapMany(Function mapper)
+        + Mono doOnNext(Consumer action)
+        + Mono doOnError(Consumer action)
+        + Mono doOnComplete(Runnable action)
+        + Mono defaultIfEmpty(Object defaultValue)
+    }
+    
+    class Flux {
+        + Flux bufferTimeout(int maxSize, Duration maxTime)
+        + Mono then()
+        + Flux map(Function mapper)
+        + Mono collectMap(Function keyMapper)
+        + Disposable subscribe()
+    }
+}
+
+ProductViewEventConsumer --> ReactiveKafkaConsumerTemplate : uses
+ProductViewEventConsumer --> ProductViewRepository : uses  
+ProductViewEventConsumer --> ProductViewEvent : processes
+ProductViewEventConsumer --> ProductViewCount : creates/updates
+ProductViewEventConsumer --> ReceiverRecord : receives
+
+ProductViewRepository --> ProductViewCount : manages
+ProductViewRepository --|> ReactiveCrudRepository : extends
+
+ProductViewCount --|> Persistable : implements
+
+ReactiveKafkaConsumerTemplate --> ReceiverRecord : produces
+ReceiverRecord --> ReceiverOffset : contains
+ReceiverRecord --> ProductViewEvent : contains as value
+
+ProductViewEventConsumer --> Mono : returns
+ReactiveKafkaConsumerTemplate --> Flux : returns
+ProductViewRepository --> Flux : returns
+
+note right of ProductViewEventConsumer
+  **Main Consumer Class**
+  • Service component
+  • Batch processes Kafka events
+  • Implements upsert pattern
+  • Uses reactive programming
+  • Handles both updates & inserts
+end note
+
+note right of ProductViewRepository  
+  **Spring Data R2DBC Repository**
+  • Reactive database operations
+  • Auto-generated query methods
+  • Built-in CRUD operations
+  • Custom findTop5ByOrderByCountDesc()
+end note
+
+note bottom of ProductViewCount
+  **Persistable Entity**
+  • Implements Spring Data Persistable
+  • isNew() controls INSERT vs UPDATE
+  • Transient isNew field not persisted
+  • Used for upsert pattern
+end note
+
+note top of ReactiveKafkaConsumerTemplate
+  **Kafka Integration**
+  • Spring Kafka reactive consumer
+  • Provides backpressure handling
+  • Returns Flux of ReceiverRecord
+  • Handles offset management
+end note
+
+note left of ProductViewEventConsumer
+  **Batch Processing Pipeline:**
+  1. Aggregate events by productId
+  2. Lookup existing records from DB
+  3. Apply updateViewCount for each product
+  4. Save all changes to database
+  5. Acknowledge Kafka offset
+  
+  **Upsert Logic:**
+  • getOrDefault handles new products
+  • Adds new views to existing count
+  • Sets isNew=false for persistence
+  • Returns updated entity
+end note
+
+@enduml
