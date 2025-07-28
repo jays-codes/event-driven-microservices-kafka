@@ -2,13 +2,16 @@
 Jay's project/practice repo for Event-driven Microservice using Kafka
 
 #### demo proj: product-analytics-project
+- product-analytics-project/analytics: created data.sql(product_view_count), application.yaml; created *.entity.ProductViewCount, *.event.ProductViewEvent, *.dto.ProductTrendingDTO, *.repository.<<ProductViewRepository>> (extends <<ReactiveCrudRepository<Product,Integer>>>), *.config.KafkaConsumerConfig,controller.TrendingController
+- created analytics microservice project: product-analytics-project/analytics; jayslabs.kafka:analytics, jdk 21, sb 3.5.4; dep: Spring Reactive Web, Spring Data R2DBC, Spring for Apache Kafka, reactor-kafka, lombok, H2;
+
 - product-analytics-project/products: updated controller api to return Mono<ResponseEntity<ProductDTO>>, updated Test class
 - product-analytics-project/products: created integration test components: ProductsApplicationTests (extends <<AbstractIntegrationTest>>); uses WebTestClient
 - product-analytics-project/products: created references to PVEP from ServiceImpl, Controller; defined @Bean for PVEP in KafkaProducerConfig
 - [BP] product-analytics-project/products: created *.service.ProductViewEventProducer. This is autowired and invoked inside ProductServiceImpl to write events to kafka topic.
 - product-analytics-project/products: created *.service.<<ProductService>> and ProductServiceImpl 
 - product-analytics-project/products: created data.sql, product.csv, app.yaml; created *.entity.Product, *.dto.ProductDTO, *.repository.<<ProductRepository>> (extends <<ReactiveCrudRepository<Product,Integer>>>), *.mapper.ProductsMapper, *.config.KafkaProducerConfig, *.event.ProductViewEvent,  *.controller.ProductsController
-- created microservice project: product-analytics-project/products; jayslabs.kafka:products, jdk 21, sb 3.5.3; dep: Spring Reactive Web, Spring Data R2DBC, Spring for Apache Kafka, reactor-kafka, lombok, H2;
+- created product microservice project: product-analytics-project/products; jayslabs.kafka:products, jdk 21, sb 3.5.3; dep: Spring Reactive Web, Spring Data R2DBC, Spring for Apache Kafka, reactor-kafka, lombok, H2;
 - Refer to README2.md
 
 #### proj: reactive-kafka-sandbox (jayslabs.kafka; SpringBoot 3.5.0, jdk 21;Spring Reactive Web, Spring for Apache Kafka, lombok, reactor-kafka)
