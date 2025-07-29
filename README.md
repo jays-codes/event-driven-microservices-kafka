@@ -3,7 +3,8 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 #### demo proj: product-analytics-project
 
-- product-analytics-project/analytics: [BP] created ProductViewEventConsumer class - Batch Processing Kafka consumer for product view analytics. reads Product View events from a kafka topic and does batch processing (1,000 events or 1 second - whichever comes first) to minimize on DB calls; created Sequence and Class Diagrams to illustrate flow and architecture
+- product-analytics-project/analytics: [BP] refactored PVEC into PVEC + ProductViewAnalyticsService (PVAS). PVEC calls PVAS.processBatch(List<ReceiverRecord<String, ProductViewEvent>> events)
+- product-analytics-project/analytics: [BP] created ProductViewEventConsumer class (PVEC) - Batch Processing Kafka consumer for product view analytics. reads Product View events from a kafka topic and does batch processing (1,000 events or 1 second - whichever comes first) to minimize on DB calls; created Sequence and Class Diagrams to illustrate flow and architecture
 - product-analytics-project/analytics: created data.sql(product_view_count), application.yaml; created *.entity.ProductViewCount, *.event.ProductViewEvent, *.dto.ProductTrendingDTO, *.repository.<<ProductViewRepository>> (extends <<ReactiveCrudRepository<Product,Integer>>>), *.config.KafkaConsumerConfig,controller.TrendingController
 - created analytics microservice project: product-analytics-project/analytics; jayslabs.kafka:analytics, jdk 21, sb 3.5.4; dep: Spring Reactive Web, Spring Data R2DBC, Spring for Apache Kafka, reactor-kafka, lombok, H2;
 
