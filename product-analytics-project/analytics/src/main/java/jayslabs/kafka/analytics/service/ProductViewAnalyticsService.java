@@ -17,6 +17,17 @@ import lombok.AllArgsConstructor;
 import reactor.core.publisher.Mono;
 import reactor.kafka.receiver.ReceiverRecord;
 
+/**
+ * Service responsible for processing ProductViewEvent batches from Kafka.
+ * 
+ * Single Responsibility: Handles WRITE operations for analytics data
+ * - Aggregates incoming view events by product ID
+ * - Performs upsert operations on product view counts
+ * - Manages Kafka offset acknowledgments
+ * 
+ * Note: This service does NOT handle trending data broadcasts.
+ * See TrendingProductsBroadcastService for READ operations and real-time streaming.
+ */
 @Service
 @AllArgsConstructor
 public class ProductViewAnalyticsService {
@@ -24,7 +35,7 @@ public class ProductViewAnalyticsService {
     private static final Logger logger = LoggerFactory.getLogger(ProductViewAnalyticsService.class);
 
     private final ProductViewRepository pvrepo;
-
+    
     public Mono<Void> processBatch(List<ReceiverRecord<String, ProductViewEvent>> events) {
 
         //This will produce evtMap

@@ -1,16 +1,40 @@
 @startuml ProductViewEventConsumer Class Diagram
 
-title ProductViewEventConsumer - Core Architecture
+title Product Analytics - Complete Architecture
+
+package "Controller Layer" {
+    class TrendingController {
+        - final TrendingProductsBroadcastService service
+        
+        + TrendingController(TrendingProductsBroadcastService)
+        + Flux trending()
+    }
+}
 
 package "Service Layer" {
     class ProductViewEventConsumer {
         - final ReactiveKafkaConsumerTemplate template
+        - final ProductViewAnalyticsService analyticsService
+        
+        + ProductViewEventConsumer(ReactiveKafkaConsumerTemplate, ProductViewAnalyticsService)
+        + void subscribe()
+    }
+    
+    class ProductViewAnalyticsService {
         - final ProductViewRepository pvrepo
         
-        + ProductViewEventConsumer(ReactiveKafkaConsumerTemplate, ProductViewRepository)
-        + void subscribe()
-        - Mono process(List events)
+        + ProductViewAnalyticsService(ProductViewRepository)
+        + Mono processBatch(List events)
         - ProductViewCount updateViewCount(Map dbMap, Map evtMap, int productId)
+    }
+    
+    class TrendingProductsBroadcastService {
+        - final ProductViewRepository repo
+        - Flux trends
+        
+        + TrendingProductsBroadcastService(ProductViewRepository)
+        + Flux getTrends()
+        - void init()
     }
 }
 
@@ -44,6 +68,18 @@ package "Entity Layer" {
     interface Persistable {
         + Object getId()
         + boolean isNew()
+    }
+}
+
+package "DTO Layer" {
+    class ProductTrendingDTO {
+        + Integer productId
+        + Long viewCount
+        
+        + Integer getProductId()
+        + Long getViewCount()
+        + void setProductId(Integer productId)
+        + void setViewCount(Long viewCount)
     }
 }
 
@@ -97,14 +133,28 @@ package "Reactive Streams" {
         + Flux map(Function mapper)
         + Mono collectMap(Function keyMapper)
         + Disposable subscribe()
+        + Flux repeatWhen(Function)
+        + Flux distinctUntilChanged()
+        + Flux cache(int)
     }
 }
 
+TrendingController --> TrendingProductsBroadcastService : uses
+
 ProductViewEventConsumer --> ReactiveKafkaConsumerTemplate : uses
-ProductViewEventConsumer --> ProductViewRepository : uses  
-ProductViewEventConsumer --> ProductViewEvent : processes
-ProductViewEventConsumer --> ProductViewCount : creates/updates
-ProductViewEventConsumer --> ReceiverRecord : receives
+ProductViewEventConsumer --> ProductViewAnalyticsService : delegates to
+
+ProductViewAnalyticsService --> ProductViewRepository : writes to
+TrendingProductsBroadcastService --> ProductViewRepository : reads from
+
+ProductViewAnalyticsService --> ProductViewEvent : processes
+ProductViewAnalyticsService --> ProductViewCount : creates/updates
+ProductViewAnalyticsService --> ReceiverRecord : receives
+
+TrendingProductsBroadcastService --> ProductViewCount : reads
+TrendingProductsBroadcastService --> ProductTrendingDTO : produces
+
+TrendingController --> ProductTrendingDTO : returns
 
 ProductViewRepository --> ProductViewCount : manages
 ProductViewRepository --|> ReactiveCrudRepository : extends
@@ -115,56 +165,71 @@ ReactiveKafkaConsumerTemplate --> ReceiverRecord : produces
 ReceiverRecord --> ReceiverOffset : contains
 ReceiverRecord --> ProductViewEvent : contains as value
 
-ProductViewEventConsumer --> Mono : returns
+ProductViewEventConsumer --> Mono : returns from subscribe
+ProductViewAnalyticsService --> Mono : returns from processBatch
+TrendingProductsBroadcastService --> Flux : returns from getTrends
+TrendingController --> Flux : returns from trending
 ReactiveKafkaConsumerTemplate --> Flux : returns
 ProductViewRepository --> Flux : returns
 
+note right of TrendingController
+  **REST API Layer**
+  • Exposes trending data via Server-Sent Events
+  • Uses TEXT_EVENT_STREAM for real-time updates
+  • Simple delegation to broadcast service
+  • Reactive endpoint for live data streaming
+end note
+
 note right of ProductViewEventConsumer
-  **Main Consumer Class**
-  • Service component
-  • Batch processes Kafka events
+  **Kafka Integration Layer**
+  • Pure infrastructure component
+  • Handles Kafka consumption
+  • Delegates business logic
+  • Uses bufferTimeout for batching
+  • Simplified and focused
+end note
+
+note right of ProductViewAnalyticsService
+  **Write Operations Service**
+  • Handles analytics processing
+  • Manages view count aggregation
   • Implements upsert pattern
-  • Uses reactive programming
-  • Handles both updates & inserts
+  • Controls database write operations
+  • Processes Kafka events in batches
+end note
+
+note right of TrendingProductsBroadcastService
+  **Read Operations Service**
+  • Handles trending data broadcasts
+  • Cached reactive stream with refresh
+  • Polls database every 5 seconds
+  • Filters empty results
+  • Provides real-time trending data
 end note
 
 note right of ProductViewRepository  
-  **Spring Data R2DBC Repository**
+  **Shared Data Access Layer**
+  • Used by both Analytics (write) and Broadcast (read)
+  • Spring Data R2DBC Repository
+  • Custom findTop5ByOrderByCountDesc() for trending
   • Reactive database operations
-  • Auto-generated query methods
-  • Built-in CRUD operations
-  • Custom findTop5ByOrderByCountDesc()
 end note
 
-note bottom of ProductViewCount
-  **Persistable Entity**
-  • Implements Spring Data Persistable
-  • isNew() controls INSERT vs UPDATE
-  • Transient isNew field not persisted
-  • Used for upsert pattern
-end note
-
-note top of ReactiveKafkaConsumerTemplate
-  **Kafka Integration**
-  • Spring Kafka reactive consumer
-  • Provides backpressure handling
-  • Returns Flux of ReceiverRecord
-  • Handles offset management
-end note
-
-note left of ProductViewEventConsumer
-  **Batch Processing Pipeline:**
-  1. Aggregate events by productId
-  2. Lookup existing records from DB
-  3. Apply updateViewCount for each product
-  4. Save all changes to database
-  5. Acknowledge Kafka offset
+note left of ProductViewAnalyticsService
+  **Complete Analytics Architecture:**
   
-  **Upsert Logic:**
-  • getOrDefault handles new products
-  • Adds new views to existing count
-  • Sets isNew=false for persistence
-  • Returns updated entity
+  **Write Path (Event-Driven):**
+  Kafka → Consumer → Analytics → Repository → Database
+  
+  **Read Path (Time-Driven):**
+  Database ← Repository ← Broadcast ← Controller ← Client
+  
+  **Benefits:**
+  • Clear separation: Write vs Read operations
+  • Independent scaling and testing
+  • Real-time data streaming via SSE
+  • Cached trending data for performance
+  • Single Responsibility Principle enforced
 end note
 
 @enduml

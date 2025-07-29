@@ -1,104 +1,145 @@
-@startuml ProductViewEventConsumer Sequence Diagram
+@startuml Product Analytics Sequence Diagram
 
-title ProductViewEventConsumer - Batch Processing Flow
+title Product Analytics - Complete Architecture Flow
 
+participant "Client" as Client
+participant "TrendingController" as Controller
+participant "TrendingProductsBroadcastService" as Broadcast
 participant "Kafka Topic<br/>(product-view-events)" as Kafka
 participant "ReactiveKafkaConsumerTemplate" as Template
 participant "ProductViewEventConsumer" as Consumer
+participant "ProductViewAnalyticsService" as Analytics
 participant "ProductViewRepository" as Repository
 participant "Database<br/>(H2)" as DB
 
-== Initialization ==
+== System Initialization ==
 Consumer -> Template: subscribe() @PostConstruct
 activate Consumer
 Template -> Template: receive()
 note right: Creates reactive stream<br/>of ReceiverRecord messages
 
-== Batch Collection ==
-loop Continuous Message Processing
+Broadcast -> Broadcast: init() @PostConstruct
+activate Broadcast
+Broadcast -> Repository: findTop5ByOrderByCountDesc()
+activate Repository
+Repository -> DB: SELECT * FROM product_view_count<br/>ORDER BY count DESC LIMIT 5
+activate DB
+DB -> Repository: Top 5 ProductViewCount records
+deactivate DB
+Repository -> Broadcast: Flux<ProductViewCount>
+deactivate Repository
+
+Broadcast -> Broadcast: map to ProductTrendingDTO<br/>collectList(), repeatWhen(5s)<br/>distinctUntilChanged(), cache(1)
+note right: **Trending Stream Setup:**<br/>• Polls every 5 seconds<br/>• Filters empty results<br/>• Caches latest result<br/>• Only emits when changed
+deactivate Broadcast
+
+== Write Path: Event Processing ==
+loop Continuous Kafka Event Processing
     Kafka -> Template: ProductViewEvent messages
     activate Template
     Template -> Template: bufferTimeout(1000, Duration.ofSeconds(1))
     note right: **Batching Strategy:**<br/>• Collect up to 1000 messages<br/>• OR wait max 1 second<br/>• Whichever comes first
     
-    Template -> Consumer: process(List<ReceiverRecord<String, ProductViewEvent>>)
-    activate Consumer
+    Template -> Consumer: Batched events
+    Consumer -> Analytics: processBatch(List<ReceiverRecord<String, ProductViewEvent>>)
+    activate Analytics
     
-    == Step 1: Event Aggregation ==
-    Consumer -> Consumer: events.stream()<br/>.map(r -> r.value().getProductId())<br/>.collect(groupingBy(identity(), counting()))
-    note right: **Creates evtMap:**<br/>{<br/>  1: 3,  // Product 1 had 3 views<br/>  2: 1,  // Product 2 had 1 view<br/>  5: 2   // Product 5 had 2 views<br/>}
+    == Event Aggregation ==
+    Analytics -> Analytics: events.stream()<br/>.map(r -> r.value().getProductId())<br/>.collect(groupingBy(identity(), counting()))
+    note right: **Creates evtMap:**<br/>{1: 3, 2: 1, 5: 2}
     
-    == Step 2: Database Lookup ==
-    Consumer -> Repository: findAllById(evtMap.keySet())
+    == Database Lookup & Update ==
+    Analytics -> Repository: findAllById(evtMap.keySet())
     activate Repository
     Repository -> DB: SELECT * FROM product_view_count<br/>WHERE id IN (1, 2, 5)
     activate DB
-    DB -> Repository: Flux<ProductViewCount>
+    DB -> Repository: Existing ProductViewCount records
     deactivate DB
-    Repository -> Consumer: Flux<ProductViewCount>
+    Repository -> Analytics: Flux<ProductViewCount>
     deactivate Repository
     
-    Consumer -> Consumer: collectMap(ProductViewCount::getId)
-    note right: **Creates dbMap:**<br/>{<br/>  1: ProductViewCount{id=1, count=100},<br/>  2: ProductViewCount{id=2, count=50}<br/>  // Product 5 not in DB yet<br/>}
+    Analytics -> Analytics: collectMap(ProductViewCount::getId)<br/>defaultIfEmpty(emptyMap())
     
-    Consumer -> Consumer: defaultIfEmpty(Collections.emptyMap())
-    note right: Handles case where no<br/>existing records found
-    
-    == Step 3: Update Logic ==
-    loop For each productId in evtMap.keySet()
-        Consumer -> Consumer: updateViewCount(dbMap, evtMap, productId)
-        
-        alt Product exists in database
-            note right of Consumer: **Update existing:**<br/>pvc = dbMap.get(productId)<br/>pvc.setCount(existing + new)<br/>pvc.setNew(false)
-        else Product is new
-            note right of Consumer: **Create new:**<br/>pvc = new ProductViewCount(id, 0L, true)<br/>pvc.setCount(0 + new)<br/>pvc.setNew(false)
-        end
-        
-        Consumer -> Consumer: Return updated ProductViewCount
+    loop For each productId in batch
+        Analytics -> Analytics: updateViewCount(dbMap, evtMap, productId)
+        note right: **Upsert Logic:**<br/>• Update existing counts<br/>• Create new records<br/>• Set isNew=false
     end
     
-    note right of Consumer: **Result List:**<br/>[<br/>  ProductViewCount{id=1, count=103, isNew=false},<br/>  ProductViewCount{id=2, count=51, isNew=false},<br/>  ProductViewCount{id=5, count=2, isNew=false}<br/>]
-    
-    == Step 4: Database Persistence ==
-    Consumer -> Repository: saveAll(List<ProductViewCount>)
+    == Database Persistence ==
+    Analytics -> Repository: saveAll(List<ProductViewCount>)
     activate Repository
-    
-    loop For each ProductViewCount
-        Repository -> DB: Upsert operation
-        activate DB
-        note right: **Spring Data R2DBC automatically:**<br/>• UPDATE for existing records<br/>• INSERT for new records<br/>based on Persistable.isNew()
-        
-        alt Existing record
-            DB -> DB: UPDATE product_view_count<br/>SET count = ? WHERE id = ?
-        else New record  
-            DB -> DB: INSERT INTO product_view_count<br/>(id, count) VALUES (?, ?)
-        end
-        deactivate DB
-    end
-    
-    Repository -> Consumer: Flux<ProductViewCount> (saved entities)
+    Repository -> DB: Batch INSERT/UPDATE operations
+    activate DB
+    DB -> DB: Upsert product view counts
+    deactivate DB
+    Repository -> Analytics: Saved entities
     deactivate Repository
     
-    == Step 5: Acknowledgment ==
-    Consumer -> Consumer: doOnComplete(() -> <br/>events.get(events.size() - 1)<br/>.receiverOffset().acknowledge())
-    note right: **Acknowledge last message**<br/>commits entire batch offset<br/>to Kafka
+    == Kafka Acknowledgment ==
+    Analytics -> Analytics: doOnComplete(() -> acknowledge())
+    note right: **Acknowledge last message**<br/>commits entire batch offset
     
-    Consumer -> Template: Mono<Void> (completion signal)
-    deactivate Consumer
+    Analytics -> Consumer: Mono<Void> (completion)
+    deactivate Analytics
+    Consumer -> Template: Processing complete
     Template -> Template: Subscribe to next batch
     deactivate Template
-    
-    == Error Handling ==
-    note over Consumer, Repository: **On Error:**<br/>• doOnError logs the exception<br/>• Batch is NOT acknowledged<br/>• Messages will be reprocessed<br/>• Maintains at-least-once delivery
 end
 
+== Read Path: Real-Time Trending Data ==
+Client -> Controller: GET /trending (SSE request)
+activate Controller
+note right: **Server-Sent Events**<br/>Content-Type: text/event-stream
+
+Controller -> Broadcast: getTrends()
+activate Broadcast
+Broadcast -> Broadcast: Return cached trending stream
+note right: **Cached Stream Benefits:**<br/>• No database hit per request<br/>• Shared among all clients<br/>• Auto-refreshes every 5s
+
+Broadcast -> Controller: Flux<List<ProductTrendingDTO>>
+deactivate Broadcast
+
+Controller -> Client: Streaming trending data
+note left: **Real-Time Updates:**<br/>• Live data stream via SSE<br/>• Updates every 5 seconds<br/>• Only when data changes<br/>• Multiple clients supported
+
+== Background: Trending Data Refresh ==
+note over Broadcast, DB: **Every 5 seconds (background)**
+Broadcast -> Repository: findTop5ByOrderByCountDesc()
+activate Repository
+Repository -> DB: SELECT top 5 trending products
+activate DB
+DB -> Repository: Latest trending data
+deactivate DB
+Repository -> Broadcast: Fresh ProductViewCount data
+deactivate Repository
+Broadcast -> Broadcast: distinctUntilChanged()<br/>Only emit if data changed
+Broadcast -> Controller: Updated trending data (if changed)
+Controller -> Client: New trending data via SSE
+
+deactivate Controller
+
 == Architecture Benefits ==
-note over Kafka, DB
-  **High Throughput:** Batch processing reduces DB calls
-  **Fault Tolerance:** Failed batches are retried  
-  **Efficiency:** Single transaction per batch
-  **Upsert Logic:** Handles both updates and inserts seamlessly
-  **Backpressure:** bufferTimeout prevents memory issues
+note over Client, DB
+  **Complete CQRS-like Architecture:**
+  
+  **Write Side (Command):**
+  • Event-driven via Kafka
+  • Batch processing for efficiency
+  • Handles high-volume product view events
+  • Transactional consistency
+  
+  **Read Side (Query):**
+  • Time-driven data refresh
+  • Cached for performance
+  • Real-time streaming to clients
+  • Optimized for trending queries
+  
+  **Benefits:**
+  • Independent scaling of reads vs writes
+  • High performance for both operations
+  • Real-time user experience
+  • Fault tolerance and resilience
+  • Clear separation of concerns
 end note
 
 @enduml
