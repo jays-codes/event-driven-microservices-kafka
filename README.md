@@ -3,6 +3,7 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 #### demo proj: product-analytics-project
 
+- debugged runtime error in PVAS.updateViewCount() (removed call to setNew() - corrected upsert logic)
 - product-analytics-project/analytics: created AbstractIntegrationTest (AIT) and AnalyticsApplicationTest (extends AIT) 
 - product-analytics-project/analytics: [BP] created TrendingProductsBroadcastService (TPBS) - creates cached (trends:Flux<List<ProductTrendingDTO>>) trending data stream, updates cache every 5 seconds (init() - uses map(), collectList(), filter(), repeatWhen(), delayElements(), distinctUntilChanged(), cache()), getTrends() exposed to controller to read cache; updated TrendingController to autowire and call TBPS; updated UML diagrams to reflect recent changes
 - product-analytics-project/analytics: [BP] refactored PVEC into PVEC + ProductViewAnalyticsService (PVAS). PVEC calls PVAS.processBatch(List<ReceiverRecord<String, ProductViewEvent>> events). PVAS process kafka events in batches, updates product-view-event DB table, handles upsert logic and ack

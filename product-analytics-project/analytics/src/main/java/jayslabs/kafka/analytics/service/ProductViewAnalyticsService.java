@@ -65,7 +65,7 @@ public class ProductViewAnalyticsService {
     Map<Integer, Long> evtMap, int productId) {
         var pvc = dbMap.getOrDefault(productId, new ProductViewCount(productId, 0L, true));
         pvc.setCount(pvc.getCount() + evtMap.getOrDefault(productId, 0L));
-        pvc.setNew(false);
+        //pvc.setNew(false);
         return pvc;
     }
 }
