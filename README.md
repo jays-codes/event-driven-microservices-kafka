@@ -3,6 +3,7 @@ Jay's project/practice repo for Event-driven Microservice using Kafka
 
 #### demo proj: product-analytics-project
 
+- product-analytics-project/analytics: created AbstractIntegrationTest (AIT) and AnalyticsApplicationTest (extends AIT) 
 - product-analytics-project/analytics: [BP] created TrendingProductsBroadcastService (TPBS) - creates cached (trends:Flux<List<ProductTrendingDTO>>) trending data stream, updates cache every 5 seconds (init() - uses map(), collectList(), filter(), repeatWhen(), delayElements(), distinctUntilChanged(), cache()), getTrends() exposed to controller to read cache; updated TrendingController to autowire and call TBPS; updated UML diagrams to reflect recent changes
 - product-analytics-project/analytics: [BP] refactored PVEC into PVEC + ProductViewAnalyticsService (PVAS). PVEC calls PVAS.processBatch(List<ReceiverRecord<String, ProductViewEvent>> events). PVAS process kafka events in batches, updates product-view-event DB table, handles upsert logic and ack
 - product-analytics-project/analytics: [BP] created ProductViewEventConsumer class (PVEC) - Batch Processing Kafka consumer for product view analytics. reads Product View events from a kafka topic and does batch processing (1,000 events or 1 second - whichever comes first) to minimize on DB calls; created Sequence and Class Diagrams to illustrate flow and architecture
