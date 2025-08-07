@@ -14,7 +14,9 @@ import jayslabs.kafka.analytics.entity.ProductViewCount;
 import jayslabs.kafka.analytics.event.ProductViewEvent;
 import jayslabs.kafka.analytics.repository.ProductViewRepository;
 import lombok.AllArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.kafka.receiver.ReceiverRecord;
 
 /**
@@ -35,7 +37,13 @@ public class ProductViewAnalyticsService {
     private static final Logger logger = LoggerFactory.getLogger(ProductViewAnalyticsService.class);
 
     private final ProductViewRepository pvrepo;
-    
+    private final Sinks.Many<Integer> sink = Sinks.many().unicast().onBackpressureBuffer();
+    private final Flux<Integer> flux = sink.asFlux();
+
+    public Flux<Integer> getCompanionFlux(){
+        return this.flux;
+    }
+
     public Mono<Void> processBatch(List<ReceiverRecord<String, ProductViewEvent>> events) {
 
         //This will produce evtMap
@@ -57,6 +65,10 @@ public class ProductViewAnalyticsService {
 
         //This will acknowledge the last event
         .doOnComplete(() -> events.get(events.size() - 1).receiverOffset().acknowledge())
+        
+        //
+        .doOnComplete(() -> sink.tryEmitNext(1))
+
         .doOnError(e -> logger.error(e.getMessage()))
         .then();
     }

@@ -9,6 +9,7 @@ participant "Kafka Topic<br/>(product-view-events)" as Kafka
 participant "ReactiveKafkaConsumerTemplate" as Template
 participant "ProductViewEventConsumer" as Consumer
 participant "ProductViewAnalyticsService" as Analytics
+participant "Sinks.Many<br/>(Event Signal)" as Sink
 participant "ProductViewRepository" as Repository
 participant "Database<br/>(H2)" as DB
 
@@ -29,8 +30,9 @@ deactivate DB
 Repository -> Broadcast: Flux<ProductViewCount>
 deactivate Repository
 
-Broadcast -> Broadcast: map to ProductTrendingDTO<br/>collectList(), repeatWhen(5s)<br/>distinctUntilChanged(), cache(1)
-note right: **Trending Stream Setup:**<br/>• Polls every 5 seconds<br/>• Filters empty results<br/>• Caches latest result<br/>• Only emits when changed
+Broadcast -> Analytics: getCompanionFlux()
+Broadcast -> Broadcast: map to ProductTrendingDTO<br/>collectList(), repeatWhen(companionFlux)<br/>distinctUntilChanged(), cache(1)
+note right: **Event-Driven Stream Setup:**<br/>• Triggered by data changes<br/>• Uses companion flux from Analytics<br/>• Caches latest result<br/>• Only emits when changed
 deactivate Broadcast
 
 == Write Path: Event Processing ==
@@ -75,9 +77,15 @@ loop Continuous Kafka Event Processing
     Repository -> Analytics: Saved entities
     deactivate Repository
     
-    == Kafka Acknowledgment ==
+    == Kafka Acknowledgment & Event Signal ==
     Analytics -> Analytics: doOnComplete(() -> acknowledge())
     note right: **Acknowledge last message**<br/>commits entire batch offset
+    
+    Analytics -> Sink: tryEmitNext(1)
+    activate Sink
+    note right: **Signal Data Change**<br/>Triggers companion flux<br/>for real-time updates
+    Sink -> Broadcast: Signal propagation
+    deactivate Sink
     
     Analytics -> Consumer: Mono<Void> (completion)
     deactivate Analytics
@@ -94,16 +102,18 @@ note right: **Server-Sent Events**<br/>Content-Type: text/event-stream
 Controller -> Broadcast: getTrends()
 activate Broadcast
 Broadcast -> Broadcast: Return cached trending stream
-note right: **Cached Stream Benefits:**<br/>• No database hit per request<br/>• Shared among all clients<br/>• Auto-refreshes every 5s
+note right: **Cached Stream Benefits:**<br/>• No database hit per request<br/>• Shared among all clients<br/>• Event-driven updates
 
 Broadcast -> Controller: Flux<List<ProductTrendingDTO>>
 deactivate Broadcast
 
 Controller -> Client: Streaming trending data
-note left: **Real-Time Updates:**<br/>• Live data stream via SSE<br/>• Updates every 5 seconds<br/>• Only when data changes<br/>• Multiple clients supported
+note left: **Real-Time Updates:**<br/>• Live data stream via SSE<br/>• Immediate updates on data changes<br/>• Only when data changes<br/>• Multiple clients supported
 
-== Background: Trending Data Refresh ==
-note over Broadcast, DB: **Every 5 seconds (background)**
+== Background: Event-Driven Data Refresh ==
+note over Sink, DB: **Triggered by data changes (event-driven)**
+Sink -> Broadcast: Companion flux signal
+activate Broadcast
 Broadcast -> Repository: findTop5ByOrderByCountDesc()
 activate Repository
 Repository -> DB: SELECT top 5 trending products
@@ -115,31 +125,32 @@ deactivate Repository
 Broadcast -> Broadcast: distinctUntilChanged()<br/>Only emit if data changed
 Broadcast -> Controller: Updated trending data (if changed)
 Controller -> Client: New trending data via SSE
+deactivate Broadcast
 
 deactivate Controller
 
 == Architecture Benefits ==
 note over Client, DB
-  **Complete CQRS-like Architecture:**
+  **Enhanced Event-Driven CQRS Architecture:**
   
   **Write Side (Command):**
   • Event-driven via Kafka
   • Batch processing for efficiency
   • Handles high-volume product view events
-  • Transactional consistency
+  • Emits signals on data changes
   
   **Read Side (Query):**
-  • Time-driven data refresh
+  • Event-driven data refresh
+  • Immediate response to changes
   • Cached for performance
   • Real-time streaming to clients
-  • Optimized for trending queries
   
   **Benefits:**
-  • Independent scaling of reads vs writes
-  • High performance for both operations
-  • Real-time user experience
-  • Fault tolerance and resilience
-  • Clear separation of concerns
+  • Zero polling delays: Instant updates
+  • Efficient: Updates only when needed
+  • Reactive: End-to-end event streaming
+  • Scalable: Independent read/write paths
+  • Responsive: Real-time user experience
 end note
 
 @enduml

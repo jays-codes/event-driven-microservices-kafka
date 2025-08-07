@@ -2,6 +2,7 @@
 Jay's project/practice repo for Event-driven Microservice using Kafka
 
 #### demo proj: product-analytics-project
+- product-analytics-project/analytics: [BP] Modified DB analytics call from time-driven to event-driven; modified TBPS to trigger DB call to process trending, on event being processed in PVAS, instead of current 5 second polling; create new Companion Flux variable (sink, Flux<Integer>) in PVAS that is set in doOnComplete() + getter(), Updated Companion flux in TBPS.repeatWhen() to call PVAS.getter() method; updated Sequence and class diagrams for recent changes
 - added frontneds, index.html for both products and analytics apps; 
 
 - debugged runtime error in PVAS.updateViewCount() (removed call to setNew() - corrected upsert logic)

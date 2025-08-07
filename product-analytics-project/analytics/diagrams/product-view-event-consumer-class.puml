@@ -22,17 +22,21 @@ package "Service Layer" {
     
     class ProductViewAnalyticsService {
         - final ProductViewRepository pvrepo
+        - final Sinks.Many sink
+        - final Flux flux
         
         + ProductViewAnalyticsService(ProductViewRepository)
         + Mono processBatch(List events)
+        + Flux getCompanionFlux()
         - ProductViewCount updateViewCount(Map dbMap, Map evtMap, int productId)
     }
     
     class TrendingProductsBroadcastService {
         - final ProductViewRepository repo
+        - final ProductViewAnalyticsService analyticsService
         - Flux trends
         
-        + TrendingProductsBroadcastService(ProductViewRepository)
+        + TrendingProductsBroadcastService(ProductViewRepository, ProductViewAnalyticsService)
         + Flux getTrends()
         - void init()
     }
@@ -137,6 +141,12 @@ package "Reactive Streams" {
         + Flux distinctUntilChanged()
         + Flux cache(int)
     }
+    
+    class "Sinks.Many" as SinksMany {
+        + Sinks.Many unicast()
+        + EmitResult tryEmitNext(Object)
+        + Flux asFlux()
+    }
 }
 
 TrendingController --> TrendingProductsBroadcastService : uses
@@ -146,10 +156,12 @@ ProductViewEventConsumer --> ProductViewAnalyticsService : delegates to
 
 ProductViewAnalyticsService --> ProductViewRepository : writes to
 TrendingProductsBroadcastService --> ProductViewRepository : reads from
+TrendingProductsBroadcastService --> ProductViewAnalyticsService : uses companion flux
 
 ProductViewAnalyticsService --> ProductViewEvent : processes
 ProductViewAnalyticsService --> ProductViewCount : creates/updates
 ProductViewAnalyticsService --> ReceiverRecord : receives
+ProductViewAnalyticsService --> SinksMany : uses for event signaling
 
 TrendingProductsBroadcastService --> ProductViewCount : reads
 TrendingProductsBroadcastService --> ProductTrendingDTO : produces
@@ -201,10 +213,10 @@ end note
 note right of TrendingProductsBroadcastService
   **Read Operations Service**
   • Handles trending data broadcasts
-  • Cached reactive stream with refresh
-  • Polls database every 5 seconds
+  • Event-driven updates via companion flux
+  • Real-time response to data changes
   • Filters empty results
-  • Provides real-time trending data
+  • Cached reactive stream for performance
 end note
 
 note right of ProductViewRepository  
@@ -216,20 +228,20 @@ note right of ProductViewRepository
 end note
 
 note left of ProductViewAnalyticsService
-  **Complete Analytics Architecture:**
+  **Enhanced Event-Driven Architecture:**
   
   **Write Path (Event-Driven):**
-  Kafka → Consumer → Analytics → Repository → Database
+  Kafka → Consumer → Analytics → Repository → Database → Sink Signal
   
-  **Read Path (Time-Driven):**
-  Database ← Repository ← Broadcast ← Controller ← Client
+  **Read Path (Event-Driven):**
+  Sink Signal → Companion Flux → Broadcast → Controller → Client
   
   **Benefits:**
-  • Clear separation: Write vs Read operations
-  • Independent scaling and testing
-  • Real-time data streaming via SSE
-  • Cached trending data for performance
-  • Single Responsibility Principle enforced
+  • Real-time updates: No polling delays
+  • Event-driven: Immediate response to changes
+  • Efficient: Updates only when data changes
+  • Decoupled: Write and read paths independent
+  • Reactive: Full end-to-end streaming
 end note
 
 @enduml
