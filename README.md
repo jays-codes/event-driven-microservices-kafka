@@ -2,6 +2,7 @@
 Jay's project/practice repo for Event-driven Microservice using Kafka
 
 #### demo proj: product-analytics-project
+- added frontneds, index.html for both products and analytics apps; 
 
 - debugged runtime error in PVAS.updateViewCount() (removed call to setNew() - corrected upsert logic)
 - product-analytics-project/analytics: created AbstractIntegrationTest (AIT) and AnalyticsApplicationTest (extends AIT) 
