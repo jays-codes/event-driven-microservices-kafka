@@ -1,6 +1,9 @@
 # event-driven-microservices-kafka
 Jay's project/practice repo for Event-driven Microservice using Kafka
 
+#### proj: kafka-security-sasl-plain
+- created kafka project to demo Kafka Security: SASL + Plaintext. /props/jaas.conf, security(server).properties, docker compose file w/ security config in volumes, environment
+
 #### demo proj: product-analytics-project
 - updated png of diagrams -> /out/diagrams
 - product-analytics-project/analytics: [BP] Modified DB analytics call from time-driven to event-driven; modified TBPS to trigger DB call to process trending, on event being processed in PVAS, instead of current 5 second polling; create new Companion Flux variable (sink, Flux<Integer>) in PVAS that is set in doOnComplete() + getter(), Updated Companion flux in TBPS.repeatWhen() to call PVAS.getter() method; updated Sequence and class diagrams for recent changes
