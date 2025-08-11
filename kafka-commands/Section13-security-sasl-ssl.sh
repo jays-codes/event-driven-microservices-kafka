@@ -2,7 +2,7 @@
 
 # CA create private key and root CA certificate
 openssl genrsa -out root.key
-openssl req -new -x509 -key root.key -out root.crt  -subj "/CN=localhost" -nodes
+openssl req -new -x509 -key root.key -out root.crt  -subj "//CN=localhost" -nodes
 
 # keystore
 keytool -keystore kafka.keystore.jks -storepass changeit -alias localhost -validity 3650 -genkey -keyalg RSA -dname "CN=localhost"
