@@ -1,7 +1,8 @@
 # event-driven-microservices-kafka
 Jay's project/practice repo for Event-driven Microservice using Kafka
 
-#### proj: kafka-security-sasl-plain
+#### proj: kafka-security-sasl-plain / kafka-security-sasl-ssl
+- created kafka project to demo Kafka Security: SASL + SSL. /props/jaas.conf, security(server).properties, docker compose file w/ security config in volumes, environment; added generated keys + certs (simulated SA and server)
 - created KafkaProducer with SASL + Plaintext enabled in config map (ProducerConfig): SaslConfigs.SASL_MEHCANISM/SASL_JAAS_CONFIG, CommonClientConfigs.SECURITY_PROTOCOL_CONFIG
 - created kafka project to demo Kafka Security: SASL + Plaintext. /props/jaas.conf, security(server).properties, docker compose file w/ security config in volumes, environment
 
